@@ -76,17 +76,17 @@ function setup() {
     el.elt.decoding = 'sync';
     gifEls[i] = el;                // store p5.Element
   } // <-- IMPORTANT: close the loop here
-// textures.js
+
+  // textures.js — only the pgImage function shown
+
 function pgImage(p, sH) {
   const pWidth = 120;
 
-  // Pick a GIF deterministically or randomly
-  const r = p % 11;          // stable choice per token index
-  // const r = floor(random(0, 11));   // use this if you prefer random each build
+  // choose which GIF this token uses (stable by index)
+  const r = p % 11;          // or: floor(random(0, 11)) for random each build
+  gifIndex[p] = r;
 
-  gifIndex[p] = r;           // <<< remember which GIF to draw for this token
-
-  // Keep a placeholder graphics so heightRatio/layout still work
+  // placeholder graphic for layout math
   pgT[p] = createGraphics(pWidth, sH);
   pgT[p].noStroke();
   pgT[p].fill(foreColor);
@@ -94,6 +94,7 @@ function pgImage(p, sH) {
 
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
+
 
   // Colors / palette
   bkgdColor = color('#000000');
