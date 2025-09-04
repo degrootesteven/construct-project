@@ -30,10 +30,15 @@ let widgetOn = true;
 let inverter = false;
 let typeToggle = 1;         // font variation selector
 
-// --- layout & density knobs ---
-let LINE_PAD    = 24;   // vertical space between lines (try 24–36)
-let WORD_PAD    = 12;   // horizontal space between tokens (try 10–18)
-let SHAPE_SCALE = 0.85; // shrink non-text shapes (0.75–0.9 looks good)
+// --- layout randomness controls ---
+let LINE_PAD     = 24;    // base vertical padding
+let WORD_PAD     = 12;    // base horizontal padding
+let SHAPE_SCALE  = 0.85;  // shrink non-text shapes
+
+// randomness multipliers (0.0–1.0 is safe)
+let PAD_JITTER   = 0.35;  // ±35% randomness on padding
+let SIZE_JITTER  = 0.25;  // ±25% randomness on token size
+
 let GIF_DENSITY = 1.3; // try 1.2–1.6 for “a few more” GIFs
 
 
