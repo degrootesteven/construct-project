@@ -117,77 +117,28 @@ function aSet(ticker, influ){          // takes a 0 - 1 and returns an eased 0 -
 }
 
 function randomInsert(){
-  // insert for images
-  // var r0 = 8;
-  var r0 = 1 + floor(keyArray.length/5);
-  for(var r = 0; r<r0; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X0");
-  }
+  const add = (count, tag) => {
+    for (let r = 0; r < count; r++){
+      const insertPoint = Math.round(random(keyArray.length));
+      keyArray.splice(insertPoint, 0, tag);
+    }
+  };
 
-  // insert for slashes
-  // var r1 = 10;
-  var r1 = 1 + floor(keyArray.length/12);
-  for(var r = 0; r<r1; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X1");
-  }
+  const words = keyArray.length;
+  const D = (typeof SHAPE_DENSITY === 'number') ? SHAPE_DENSITY : 1.0;
 
-  // insert for circles
-  // var r2 = 5;
-  var r2 = 1 + floor(keyArray.length/12);
-  for(var r = 0; r<r2; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X2");
-  }
+  // turn images back on:
+  add(Math.round((1 + Math.floor(words/15)) * D), "X0"); // GIF strips
 
-  // insert for scribbles
-  // var r3 = 4;
-  var r3 = 1 + floor(keyArray.length/12)
-  for(var r = 0; r<r3; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X3");
-  }
-
-  // insert for blanks
-  // var r4 = 4;
-  var r4 = 1 + floor(keyArray.length/18)
-  for(var r = 0; r<r4; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X4");
-  }
-
-  // insert for clouds
-  // var r5 = 4;
-  var r5 = 1 + floor(keyArray.length/10)
-  for(var r = 0; r<r5; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X5");
-  }
-
-  // insert for zigzag
-  // var r6 = 4;
-  var r6 = 1 + floor(keyArray.length/15)
-  for(var r = 0; r<r6; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X6");
-  }
-
-  // insert for gradient
-  // var r7 = 4;
-  var r7 = 1 + floor(keyArray.length/12)
-  for(var r = 0; r<r7; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X7");
-  }
-
-  // insert for boxes
-  // var r8 = 4;
-  var r8 = floor(keyArray.length/15)
-  for(var r = 0; r<r8; r++){
-    var insertPoint = round(random(keyArray.length));
-    keyArray.splice(insertPoint, 0, "X8");
-  }
+  // keep the others as you like
+  add(Math.round((1 + Math.floor(words/12)) * D), "X1");
+  add(Math.round((1 + Math.floor(words/12)) * D), "X2");
+  add(Math.round((1 + Math.floor(words/12)) * D), "X3");
+  add(Math.round((1 + Math.floor(words/18)) * D), "X4");
+  add(Math.round((1 + Math.floor(words/10)) * D), "X5");
+  add(Math.round((1 + Math.floor(words/15)) * D), "X6");
+  add(Math.round((1 + Math.floor(words/12)) * D), "X7");
+  add(Math.round((Math.floor(words/15))  * D), "X8");
 }
 
 function hideWidget(){
