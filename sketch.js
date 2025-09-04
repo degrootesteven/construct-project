@@ -67,62 +67,45 @@ function preload() {
   }
 }
 
-// ---------- setup: create full-viewport canvas ----------
 function setup() {
   const host = document.getElementById('construct-container') || document.body;
   const cnv = createCanvas(host.clientWidth, host.clientHeight);
   cnv.parent(host);
   frameRate(30);
 
-  // Create hidden <img> elements for each GIF (they will animate by themselves)
-for (let i = 0; i <= 10; i++) {
-  const el = createImg(`construct/resources/gifs/${i}.gif`);
-  el.attribute('alt', `gif${i}`);
-  el.style('display', 'none');         // keep them off the layout
-  el.elt.decoding = 'sync';            // draw current frame promptly
-  gifEls[i] = el;                      // store p5.Element
+  // Create hidden <img> elements for each GIF (these actually animate)
+  for (let i = 0; i <= 10; i++) {
+    const el = createImg(`construct/resources/gifs/${i}.gif`);
+    el.attribute('alt', `gif${i}`);
+    el.style('display', 'none');
+    el.elt.decoding = 'sync';
+    gifEls[i] = el;
+  } // ← this brace closes the for-loop
 
-  // Colors (tweak as you like)
+  // Colors / palette
   bkgdColor = color('#000000');
   foreColor = color('#ffffff');
-
-  colorA[0] = color('#25d964'); // green
-  colorA[1] = color('#f24f13'); // orange
-  colorA[2] = color('#f2b90f'); // yellow
-  colorA[3] = color('#0f5cbf'); // blue
+  colorA[0] = color('#25d964');
+  colorA[1] = color('#f24f13');
+  colorA[2] = color('#f2b90f');
+  colorA[3] = color('#0f5cbf');
   colorA[4] = bkgdColor;
 
-  // Build gradients if helpers are present
+  // Gradients
   if (typeof pGradientH  === 'function') pGradientH();
   if (typeof pGradientV  === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
 
+  // Compute working width and render
   wWindow = width - map(wPad, 0, 100, 0, width);
-
   if (typeof setText === 'function') setText();
 }
 
 // ---------- draw: center layout and render ----------
-function draw() {
-  background(bkgdColor);
+function draw() { /* ... */ }
 
-  const fh = (typeof fullHeight !== 'undefined') ? fullHeight : 0;
+function windowResized() { /* ... */ }
 
-  push();
-  translate(width / 2, height / 2 - fh / 2);
-  if (typeof italicWave0 === 'function') italicWave0();
-  pop();
-}
-
-// ---------- responsive resize ----------
-function windowResized() {
-  const host = document.getElementById('construct-container') || document.body;
-  resizeCanvas(host.clientWidth, host.clientHeight);
-  wWindow = width - map(wPad, 0, 100, 0, width);
-  if (typeof setText === 'function') setText();
-}
-
-// ---------- live-update text from <textarea> ----------
 document.addEventListener('DOMContentLoaded', () => {
   const ta = document.getElementById('textArea');
   if (ta) ta.addEventListener('input', () => {
