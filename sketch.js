@@ -34,6 +34,8 @@ let typeToggle = 1;         // font variation selector
 let LINE_PAD    = 24;   // vertical space between lines (try 24–36)
 let WORD_PAD    = 12;   // horizontal space between tokens (try 10–18)
 let SHAPE_SCALE = 0.85; // shrink non-text shapes (0.75–0.9 looks good)
+let GIF_DENSITY = 1.3; // try 1.2–1.6 for “a few more” GIFs
+
 
 // optional: reduce working width to force nicer wrapping (more lines)
 wPad = 60; // try 40–120; higher = narrower text column (more line breaks)
