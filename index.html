@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Construct Project</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    html, body { height: 100%; margin: 0; background:#000; }
+    canvas { display:block; }
+    #construct-container {
+      position: fixed; inset: 0;
+      width: 100vw; height: 100vh;
+    }
+    textarea {
+      width:100%; max-width:900px; display:block;
+      margin:12px auto; font:14px/1.4 system-ui;
+      position: relative; z-index: 2; background:#fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Text input -->
+  <textarea id="textArea" rows="2">STEVEN DEGROOTE Design Strategy Brand Development Creative Direction Interface</textarea>
+
+  <!-- p5 will mount its canvas into this container -->
+  <div id="construct-container"></div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+
+  <!-- Your project files (order matters) -->
+  <script src="update.js"></script>
+  <script src="textures.js"></script>
+  <script src="italicWave.js"></script>
+  <script src="entry.js"></script>
+  <script src="g_cloud.js"></script>
+  <script src="g_zigzag.js"></script>
+  <script src="g_box.js"></script>
+  <script src="g_scribble.js"></script>
+  <script src="g_gradient.js"></script>
+  <script src="sketch.js"></script>
+
+  <!-- Optional: live-update text -->
+  <script>
+    const ta = document.getElementById('textArea');
+    if (ta) ta.addEventListener('input', () => { if (typeof setText === 'function') setText(); });
+  </script>
+</body>
+</html>
