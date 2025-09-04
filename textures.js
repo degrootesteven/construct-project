@@ -21,17 +21,27 @@ function pgTexture1(inp, typeP, p, sH){
   heightRatio[p] = pgT[p].width * sH/pgT[p].height;
 }
 
-// textures.js — replace pgImage with this portable version
-function pgImage(p, sH){
-  var pWidth = 120;
+// textures.js — draw from loaded GIFs
+function pgImage(p, sH) {
+  var pWidth = 120;    // width of the strip
+  var r = floor(random(0, 11)); // pick a random GIF index 0–10
+  var img = pImg[r];
+
   pgT[p] = createGraphics(pWidth, sH);
-  pgT[p].noStroke();
-  pgT[p].fill(foreColor);
-  pgT[p].rect(0, 0, pWidth, sH);
+
+  if (img && img.width > 0) {
+    // draw the GIF image (first frame of the animated gif)
+    pgT[p].image(img, 0, 0, pWidth, sH);
+  } else {
+    // fallback if GIF didn't load
+    pgT[p].noStroke();
+    pgT[p].fill(foreColor);
+    pgT[p].rect(0, 0, pWidth, sH);
+  }
+
+  // maintain aspect ratio
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
-
-
 
 function pSlash(p, sH){
   var rSel = round(random(2));
