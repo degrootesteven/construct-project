@@ -194,9 +194,13 @@ function randomInsert(){
   };
 
   const words = keyArray.length;
-  const D = (typeof SHAPE_DENSITY === 'number') ? SHAPE_DENSITY : 1.0;
+  const D  = (typeof SHAPE_DENSITY !== 'undefined') ? SHAPE_DENSITY : 1.0;
+  const DG = (typeof GIF_DENSITY   !== 'undefined') ? GIF_DENSITY   : 1.0; // new knob
 
-  add(Math.round((1 + Math.floor(words/15)) * D), "X0"); // GIF strips
+  // ↑ bump GIFs: raise the base, use GIF_DENSITY to fine-tune
+  add(Math.max(1, Math.round((2 + Math.floor(words/10)) * D * DG)), "X0");
+
+  // keep the others
   add(Math.round((1 + Math.floor(words/12)) * D), "X1");
   add(Math.round((1 + Math.floor(words/12)) * D), "X2");
   add(Math.round((1 + Math.floor(words/12)) * D), "X3");
@@ -206,6 +210,7 @@ function randomInsert(){
   add(Math.round((1 + Math.floor(words/12)) * D), "X7");
   add(Math.round((Math.floor(words/15))  * D), "X8");
 }
+
 
 function hideWidget(){
   widgetOn = !widgetOn;
