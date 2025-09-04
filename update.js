@@ -1,20 +1,89 @@
 function setText(){
-  pgT = [];
-  pEntry = [];
-  heightRatio = [];
-  xNudge = [];
-  wordCount = [];
-  sHarry = [];
-
+  // reset arrays/state
+  pgT = []; pEntry = []; heightRatio = []; xNudge = []; wordCount = []; sHarry = [];
   fullHeight = 0;
 
-  var enteredText = document.getElementById("textArea").value;
+  // get input safely
+  const el = document.getElementById("textArea");
+  const enteredText = (el && el.value) ? el.value : "";
   keyText = enteredText;
-  keyArray = enteredText.split(" ");
+  keyArray = enteredText.trim() ? enteredText.split(" ") : [];
 
-  if(keyArray == null){
-    keyArray = "";
+  // insert decorative tokens (uses your randomInsert below)
+  randomInsert();
+
+  let lineDist = 0;
+  let lineCount = 0;
+  let thisWordCount = 0;
+
+  // choose initial strip height
+  let rSh = random(10);
+  let sH = stripH;
+  if (rSh > 7.5) sH = stripH/4;
+  else if (rSh > 5) sH = stripH/2;
+
+  for (let k = 0; k < keyArray.length; k++){
+
+    // wrap line when beyond working width
+    if (lineDist > wWindow){
+      xNudge[lineCount]    = lineDist;
+      wordCount[lineCount] = thisWordCount;
+
+      const padY = (typeof LINE_PAD !== 'undefined') ? LINE_PAD : 0;
+      sHarry[lineCount]    = sH + padY;   // add vertical padding between lines
+      fullHeight          += sHarry[lineCount];
+
+      lineCount++;
+      lineDist = 0;
+      thisWordCount = 0;
+
+      // pick a new strip height
+      rSh = random(10);
+      sH = stripH;
+      if (rSh > 7.5) sH = stripH/4;
+      else if (rSh > 5) sH = stripH/2;
+    }
+
+    // decide token type
+    let ver = 0;
+    const token = keyArray[k];
+
+    if      (token === "X0"){ pgImage(k, sH);      ver = 0; }  // GIF strip
+    else if (token === "X1"){ pSlash(k, sH);       ver = 1; }
+    else if (token === "X2"){ pRound(k, sH);       ver = 2; }
+    else if (token === "X3"){ pBlank(k, sH);       ver = 3; }
+    else if (token === "X4"){ pBlank(k, sH);       ver = 4; }
+    else if (token === "X5"){ pBlank(k, sH);       ver = 5; }
+    else if (token === "X6"){ pBlank(k, sH);       ver = 6; }
+    else if (token === "X7"){ pBlank(k, sH);       ver = 7; }
+    else if (token === "X8"){ pBlank(k, sH);       ver = 8; }
+    else {
+      const rFont = random(10);
+      if (rFont < 8) pgTexture1(token, 0, k, sH);
+      else           pgTexture1(token, typeToggle, k, sH);
+      ver = 9; // text
+    }
+
+    thisWordCount++;
+
+    // advance cursor with horizontal padding
+    const padX = (typeof WORD_PAD !== 'undefined') ? WORD_PAD : 0;
+    lineDist += heightRatio[k] + padX;
+
+    // shrink non-text shapes to reduce overlap
+    const shrink = (typeof SHAPE_SCALE !== 'undefined') ? SHAPE_SCALE : 1;
+    const entryH = (ver === 9) ? sH : Math.max(8, sH * shrink);
+    pEntry[k] = new Entry(k, ver, entryH);
   }
+
+  // push the last line
+  xNudge[lineCount]    = lineDist;
+  wordCount[lineCount] = thisWordCount;
+  const padY = (typeof LINE_PAD !== 'undefined') ? LINE_PAD : 0;
+  sHarry[lineCount]    = sH + padY;
+  fullHeight          += sHarry[lineCount];
+}
+
 
   randomInsert();
 
@@ -127,10 +196,7 @@ function randomInsert(){
   const words = keyArray.length;
   const D = (typeof SHAPE_DENSITY === 'number') ? SHAPE_DENSITY : 1.0;
 
-  // turn images back on:
   add(Math.round((1 + Math.floor(words/15)) * D), "X0"); // GIF strips
-
-  // keep the others as you like
   add(Math.round((1 + Math.floor(words/12)) * D), "X1");
   add(Math.round((1 + Math.floor(words/12)) * D), "X2");
   add(Math.round((1 + Math.floor(words/12)) * D), "X3");
@@ -152,29 +218,23 @@ function hideWidget(){
 
 function invert(){
   inverter = !inverter;
-  if(inverter == true){
+  if (inverter) {
     bkgdColor = color('#ffffff');
     foreColor = color('#000000');
     colorA[4] = bkgdColor;
-    pImg[6] = loadImage("construct/resources/gifs/6i.gif");
-
-    pGradientH();
-    pGradientV();
-    pGradientCH();
-
-    setText();
+    pImg[6] = loadImage("construct/resources/gifs/6.gif");
   } else {
     bkgdColor = color('#000000');
     foreColor = color('#ffffff');
     colorA[4] = bkgdColor;
     pImg[6] = loadImage("construct/resources/gifs/6.gif");
-
-    pGradientH();
-    pGradientV();
-    pGradientCH();
-
-    setText();
   }
+  pGradientH();
+  pGradientV();
+  pGradientCH();
+  setText();
+}
+
 }
 
 function setWpadding(val){
