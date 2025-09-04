@@ -31,20 +31,20 @@ class Entry{
   // entry.js
 display(){
   if (this.ver === 0) {
-    // animated GIF draw
-    const w = heightRatio[this.sel];
-    const h = this.sH;
-    const idx = gifIndex[this.sel];
+  const w = heightRatio[this.sel];
+  const h = this.sH;
+  const idx = gifIndex[this.sel];
 
-    if (gifEls[idx] && gifEls[idx].elt && gifEls[idx].elt.complete) {
-      // draw current frame of the animated <img> onto the p5 canvas
-      drawingContext.drawImage(gifEls[idx].elt, 0, -h/2, w, h);
-    } else {
-      // fallback if something isn't ready yet
-      image(pgT[this.sel], 0, -h/2, w, h);
-    }
-    return;
+  if (gifEls[idx] && gifEls[idx].elt && gifEls[idx].elt.complete) {
+    // draw the current frame of the hidden <img> onto the p5 canvas
+    drawingContext.drawImage(gifEls[idx].elt, 0, -h/2, w, h);
+  } else {
+    // fallback: use the placeholder graphic
+    image(pgT[this.sel], 0, -h/2, w, h);
   }
+  return;
+}
+
 
   // ... keep your existing branches
   if (this.ver===3 || this.ver===5 || this.ver===6 || this.ver===7 || this.ver===8){
