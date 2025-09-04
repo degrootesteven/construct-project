@@ -1,48 +1,83 @@
 function setText(){
-  // reset arrays/state
   pgT = []; pEntry = []; heightRatio = []; xNudge = []; wordCount = []; sHarry = [];
   fullHeight = 0;
 
-  // get input safely
   const el = document.getElementById("textArea");
   const enteredText = (el && el.value) ? el.value : "";
   keyText = enteredText;
   keyArray = enteredText.trim() ? enteredText.split(" ") : [];
 
-  // insert decorative tokens (uses your randomInsert below)
   randomInsert();
 
-  let lineDist = 0;
-  let lineCount = 0;
-  let thisWordCount = 0;
+  let lineDist = 0, lineCount = 0, thisWordCount = 0;
 
-  // choose initial strip height
+  // pick initial strip height
   let rSh = random(10);
   let sH = stripH;
   if (rSh > 7.5) sH = stripH/4;
   else if (rSh > 5) sH = stripH/2;
 
-  for (let k = 0; k < keyArray.length; k++){
+  for (let k = 0; k < keyArray.length; k++) {
 
-    // wrap line when beyond working width
+    // wrap to new line
     if (lineDist > wWindow){
       xNudge[lineCount]    = lineDist;
       wordCount[lineCount] = thisWordCount;
 
-      const padY = (typeof LINE_PAD !== 'undefined') ? LINE_PAD : 0;
-      sHarry[lineCount]    = sH + padY;   // add vertical padding between lines
+      // base vertical padding + jitter
+      let padY = LINE_PAD + random(-LINE_PAD*PAD_JITTER, LINE_PAD*PAD_JITTER);
+      sHarry[lineCount]    = sH + padY;
       fullHeight          += sHarry[lineCount];
 
-      lineCount++;
-      lineDist = 0;
-      thisWordCount = 0;
+      lineCount++; lineDist = 0; thisWordCount = 0;
 
-      // pick a new strip height
       rSh = random(10);
       sH = stripH;
       if (rSh > 7.5) sH = stripH/4;
       else if (rSh > 5) sH = stripH/2;
     }
+
+    // determine token type
+    let ver = 0;
+    const token = keyArray[k];
+
+    if      (token === "X0"){ pgImage(k, sH); ver = 0; }
+    else if (token === "X1"){ pSlash(k, sH);  ver = 1; }
+    else if (token === "X2"){ pRound(k, sH);  ver = 2; }
+    else if (token === "X3"){ pBlank(k, sH);  ver = 3; }
+    else if (token === "X4"){ pBlank(k, sH);  ver = 4; }
+    else if (token === "X5"){ pBlank(k, sH);  ver = 5; }
+    else if (token === "X6"){ pBlank(k, sH);  ver = 6; }
+    else if (token === "X7"){ pBlank(k, sH);  ver = 7; }
+    else if (token === "X8"){ pBlank(k, sH);  ver = 8; }
+    else {
+      const rFont = random(10);
+      if (rFont < 8) pgTexture1(token, 0, k, sH);
+      else           pgTexture1(token, typeToggle, k, sH);
+      ver = 9;
+    }
+
+    thisWordCount++;
+
+    // base horizontal padding + jitter
+    let padX = WORD_PAD + random(-WORD_PAD*PAD_JITTER, WORD_PAD*PAD_JITTER);
+    lineDist += heightRatio[k] + padX;
+
+    // randomize height scale (shapes only)
+    const shrink = (ver === 9) ? 1 : SHAPE_SCALE;
+    const sizeJitter = 1 + random(-SIZE_JITTER, SIZE_JITTER);
+    const entryH = Math.max(8, sH * shrink * sizeJitter);
+
+    pEntry[k] = new Entry(k, ver, entryH);
+  }
+
+  // finalize last line
+  xNudge[lineCount]    = lineDist;
+  wordCount[lineCount] = thisWordCount;
+  let padY = LINE_PAD + random(-LINE_PAD*PAD_JITTER, LINE_PAD*PAD_JITTER);
+  sHarry[lineCount]    = sH + padY;
+  fullHeight          += sHarry[lineCount];
+}
 
     // decide token type
     let ver = 0;
