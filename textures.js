@@ -76,6 +76,24 @@ function setup() {
     el.elt.decoding = 'sync';
     gifEls[i] = el;                // store p5.Element
   } // <-- IMPORTANT: close the loop here
+// textures.js
+function pgImage(p, sH) {
+  const pWidth = 120;
+
+  // Pick a GIF deterministically or randomly
+  const r = p % 11;          // stable choice per token index
+  // const r = floor(random(0, 11));   // use this if you prefer random each build
+
+  gifIndex[p] = r;           // <<< remember which GIF to draw for this token
+
+  // Keep a placeholder graphics so heightRatio/layout still work
+  pgT[p] = createGraphics(pWidth, sH);
+  pgT[p].noStroke();
+  pgT[p].fill(foreColor);
+  pgT[p].rect(0, 0, pWidth, sH);
+
+  heightRatio[p] = pgT[p].width * sH / pgT[p].height;
+}
 
   // Colors / palette
   bkgdColor = color('#000000');
