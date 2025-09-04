@@ -88,13 +88,11 @@ function reRoll(){
   setText();
 }
 
-// smooth easing helper (unchanged)
 function aSet(ticker, influ){
   const cap = ticker % 1;
   return pow(cap,influ) / (pow(cap,influ) + pow(1-cap,influ));
 }
 
-// SINGLE version of randomInsert (keep only this one)
 function randomInsert(){
   const add = (count, tag) => {
     for (let r = 0; r < count; r++){
@@ -107,7 +105,6 @@ function randomInsert(){
   const D  = (typeof SHAPE_DENSITY !== 'undefined') ? SHAPE_DENSITY : 1.0;
   const DG = (typeof GIF_DENSITY   !== 'undefined') ? GIF_DENSITY   : 1.0;
 
-  // more GIF strips
   add(Math.max(1, Math.round((2 + Math.floor(words/10)) * D * DG)), "X0");
   add(Math.round((1 + Math.floor(words/12)) * D), "X1");
   add(Math.round((1 + Math.floor(words/12)) * D), "X2");
@@ -121,7 +118,8 @@ function randomInsert(){
 
 function hideWidget(){
   widgetOn = !widgetOn;
-  document.getElementById('widget').style.display = widgetOn ? "block" : "none";
+  const w = document.getElementById('widget');
+  if (w) w.style.display = widgetOn ? "block" : "none";
 }
 
 function invert(){
@@ -131,7 +129,6 @@ function invert(){
   } else {
     bkgdColor = color('#000000'); foreColor = color('#ffffff'); colorA[4] = bkgdColor;
   }
-  // reload gradients and layout
   if (typeof pGradientH  === 'function') pGradientH();
   if (typeof pGradientV  === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
