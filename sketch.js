@@ -30,6 +30,10 @@ let widgetOn = true;
 let inverter = false;
 let typeToggle = 1;         // font variation selector
 
+// animated GIF support
+let gifEls = [];      // HTMLImageElements created via createImg()
+let gifIndex = [];    // tokenIndex -> which GIF (0..10)
+
 // --- layout randomness controls ---
 let LINE_PAD     = 24;    // base vertical padding
 let WORD_PAD     = 12;    // base horizontal padding
@@ -69,6 +73,14 @@ function setup() {
   const cnv = createCanvas(host.clientWidth, host.clientHeight);
   cnv.parent(host);
   frameRate(30);
+
+  // Create hidden <img> elements for each GIF (they will animate by themselves)
+for (let i = 0; i <= 10; i++) {
+  const el = createImg(`construct/resources/gifs/${i}.gif`);
+  el.attribute('alt', `gif${i}`);
+  el.style('display', 'none');         // keep them off the layout
+  el.elt.decoding = 'sync';            // draw current frame promptly
+  gifEls[i] = el;                      // store p5.Element
 
   // Colors (tweak as you like)
   bkgdColor = color('#000000');
