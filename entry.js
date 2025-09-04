@@ -30,20 +30,19 @@ class Entry{
 
   // entry.js
 display(){
-  if (this.ver === 0) {
+if (this.ver === 0) {
   const w = heightRatio[this.sel];
   const h = this.sH;
   const idx = gifIndex[this.sel];
 
   if (gifEls[idx] && gifEls[idx].elt && gifEls[idx].elt.complete) {
-    // draw the current frame of the hidden <img> onto the p5 canvas
     drawingContext.drawImage(gifEls[idx].elt, 0, -h/2, w, h);
   } else {
-    // fallback: use the placeholder graphic
     image(pgT[this.sel], 0, -h/2, w, h);
   }
   return;
 }
+
 
 
   // ... keep your existing branches
