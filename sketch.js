@@ -30,11 +30,10 @@ let widgetOn = true;
 let inverter = false;
 let typeToggle = 1;         // font variation selector
 
-// --- layout & density controls ---
-let LINE_PAD      = 18;   // extra pixels between lines (vertical)
-let WORD_PAD      = 8;    // extra pixels between tokens (horizontal)
-let SHAPE_DENSITY = 0.6;  // 0..1, lower = fewer shapes
-let SHAPE_SCALE   = 0.85; // 0..1, shrink shapes inside their strip
+// --- layout & density knobs ---
+let LINE_PAD    = 24;   // vertical space between lines (try 24–36)
+let WORD_PAD    = 12;   // horizontal space between tokens (try 10–18)
+let SHAPE_SCALE = 0.85; // shrink non-text shapes (0.75–0.9 looks good)
 
 // optional: reduce working width to force nicer wrapping (more lines)
 wPad = 60; // try 40–120; higher = narrower text column (more line breaks)
