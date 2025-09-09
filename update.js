@@ -1,148 +1,241 @@
-// ---------------- update.js ----------------
-
 function setText(){
-  // reset
-  pgT = []; pEntry = []; heightRatio = []; xNudge = []; wordCount = []; sHarry = [];
+  pgT = [];
+  pEntry = [];
+  heightRatio = [];
+  xNudge = [];
+  wordCount = [];
+  sHarry = [];
+
   fullHeight = 0;
 
-  // get input safely
-  const el = document.getElementById("textArea");
-  const enteredText = (el && el.value) ? el.value : "";
+  var enteredText = document.getElementById("textArea").value;
   keyText = enteredText;
-  keyArray = enteredText.trim() ? enteredText.split(" ") : [];
+  keyArray = enteredText.split(" ");
 
-  // inject decoration tokens
+  if(keyArray == null){
+    keyArray = "";
+  }
+
   randomInsert();
 
-  let lineDist = 0, lineCount = 0, thisWordCount = 0;
+  var lineDist = 0;
+  var lineCount = 0;
+  var thisWordCount = 0;
 
-  // pick initial strip height
-  let rSh = random(10);
-  let sH = stripH;
-  if (rSh > 7.5) sH = stripH/4;
-  else if (rSh > 5) sH = stripH/2;
+  var rSh = random(10);
+  var sH = stripH;
+  if(rSh>7.5){
+    sH = stripH/4;
+  } else if(rSh>5){
+    sH = stripH/2;
+  }
 
-  for (let k = 0; k < keyArray.length; k++) {
+  for(var k = 0; k<keyArray.length; k++){
 
-    // wrap
-    if (lineDist > wWindow){
-      xNudge[lineCount]    = lineDist;
+    if(lineDist > wWindow){
+      xNudge[lineCount] = lineDist;
       wordCount[lineCount] = thisWordCount;
+      sHarry[lineCount] = sH;
+      fullHeight += sH;
 
-      // vertical padding (with jitter from sketch.js knobs)
-      let padY = LINE_PAD + random(-LINE_PAD*PAD_JITTER, LINE_PAD*PAD_JITTER);
-      sHarry[lineCount]    = sH + padY;
-      fullHeight          += sHarry[lineCount];
+      lineCount ++;
+      lineDist = 0;
+      thisWordCount = 0;
 
-      lineCount++; lineDist = 0; thisWordCount = 0;
+      var rSh = random(10);
 
-      rSh = random(10);
       sH = stripH;
-      if (rSh > 7.5) sH = stripH/4;
-      else if (rSh > 5) sH = stripH/2;
+      if(rSh>7.5){
+        sH = stripH/4;
+      } else if(rSh>5){
+        sH = stripH/2;
+      }
     }
 
-    // build token
-    let ver = 0;
-    const token = keyArray[k];
+    var ver = 0;
 
-    if      (token === "X0"){ pgImage(k, sH);  ver = 0; }
-    else if (token === "X1"){ pSlash(k, sH);   ver = 1; }
-    else if (token === "X2"){ pRound(k, sH);   ver = 2; }
-    else if (token === "X3"){ pBlank(k, sH);   ver = 3; }
-    else if (token === "X4"){ pBlank(k, sH);   ver = 4; }
-    else if (token === "X5"){ pBlank(k, sH);   ver = 5; }
-    else if (token === "X6"){ pBlank(k, sH);   ver = 6; }
-    else if (token === "X7"){ pBlank(k, sH);   ver = 7; }
-    else if (token === "X8"){ pBlank(k, sH);   ver = 8; }
-    else {
-      const rFont = random(10);
-      if (rFont < 8) pgTexture1(token, 0, k, sH);
-      else           pgTexture1(token, typeToggle, k, sH);
+    if(keyArray[k] == "X0"){  // IMAGE
+      pgImage(k, sH);
+      ver = 0;
+    } else if(keyArray[k] == "X1"){  // SLASHES
+      pSlash(k, sH);
+      ver = 1;
+    } else if(keyArray[k] == "X2"){  // CIRCLES
+      pRound(k, sH);
+      ver = 2;
+    } else if(keyArray[k] == "X3"){  // SCRIBBLE
+      pBlank(k, sH);
+      ver = 3;
+    } else if(keyArray[k] == "X4"){  // BLANKS
+      pBlank(k, sH);
+      ver = 4;
+    } else if(keyArray[k] == "X5"){  // CLOUD
+      pBlank(k, sH);
+      ver = 5;
+    } else if(keyArray[k] == "X6"){  // ZIGZAG
+      pBlank(k, sH);
+      ver = 6;
+    } else if(keyArray[k] == "X7"){  // GRADIENT
+      pBlank(k, sH);
+      ver = 7;
+    } else if(keyArray[k] == "X8"){  // BOXES
+      pBlank(k, sH);
+      ver = 8;
+    } else {
+      var rFont = random(10);
+      if(rFont < 8){
+        pgTexture1(keyArray[k], 0, k, sH);
+      } else {
+        pgTexture1(keyArray[k], typeToggle, k, sH);
+      }
       ver = 9;
     }
 
-    thisWordCount++;
+    thisWordCount ++;
+    lineDist += heightRatio[k];
 
-    // horizontal padding (with jitter)
-    let padX = WORD_PAD + random(-WORD_PAD*PAD_JITTER, WORD_PAD*PAD_JITTER);
-    lineDist += heightRatio[k] + padX;
-
-    // shrink + size jitter for non-text shapes
-    const shrink = (ver === 9) ? 1 : SHAPE_SCALE;
-    const sizeJ = 1 + random(-SIZE_JITTER, SIZE_JITTER);
-    const entryH = Math.max(8, sH * shrink * sizeJ);
-    pEntry[k] = new Entry(k, ver, entryH);
+    pEntry[k] = new Entry(k, ver, sH);
   }
 
-  // finalize last line
-  xNudge[lineCount]    = lineDist;
+  xNudge[lineCount] = lineDist;
   wordCount[lineCount] = thisWordCount;
-  let padY = LINE_PAD + random(-LINE_PAD*PAD_JITTER, LINE_PAD*PAD_JITTER);
-  sHarry[lineCount]    = sH + padY;
-  fullHeight          += sHarry[lineCount];
+  sHarry[lineCount] = sH;
+  fullHeight += sH;
 }
 
 function reRoll(){
   typeToggle = round(random(1,2));
+
   setText();
 }
 
-function aSet(ticker, influ){
-  const cap = ticker % 1;
-  return pow(cap,influ) / (pow(cap,influ) + pow(1-cap,influ));
+function aSet(ticker, influ){          // takes a 0 - 1 and returns an eased 0 - 1
+  var capTicker = ticker%1;
+
+  var targetPoint = pow(capTicker,influ)/(pow(capTicker,influ) + pow(1-capTicker,influ));
+  return targetPoint;
 }
 
 function randomInsert(){
-  const add = (count, tag) => {
-    for (let r = 0; r < count; r++){
-      const insertPoint = Math.round(random(keyArray.length));
-      keyArray.splice(insertPoint, 0, tag);
-    }
-  };
+  // insert for images
+  // var r0 = 8;
+  var r0 = 1 + floor(keyArray.length/5);
+  for(var r = 0; r<r0; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X0");
+  }
 
-  const words = keyArray.length;
-  const D  = (typeof SHAPE_DENSITY !== 'undefined') ? SHAPE_DENSITY : 1.0;
-  const DG = (typeof GIF_DENSITY   !== 'undefined') ? GIF_DENSITY   : 1.0;
+  // insert for slashes
+  // var r1 = 10;
+  var r1 = 1 + floor(keyArray.length/12);
+  for(var r = 0; r<r1; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X1");
+  }
 
-  add(Math.max(1, Math.round((2 + Math.floor(words/10)) * D * DG)), "X0");
-  add(Math.round((1 + Math.floor(words/12)) * D), "X1");
-  add(Math.round((1 + Math.floor(words/12)) * D), "X2");
-  add(Math.round((1 + Math.floor(words/12)) * D), "X3");
-  add(Math.round((1 + Math.floor(words/18)) * D), "X4");
-  add(Math.round((1 + Math.floor(words/10)) * D), "X5");
-  add(Math.round((1 + Math.floor(words/15)) * D), "X6");
-  add(Math.round((1 + Math.floor(words/12)) * D), "X7");
-  add(Math.round((Math.floor(words/15))  * D), "X8");
+  // insert for circles
+  // var r2 = 5;
+  var r2 = 1 + floor(keyArray.length/12);
+  for(var r = 0; r<r2; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X2");
+  }
+
+  // insert for scribbles
+  // var r3 = 4;
+  var r3 = 1 + floor(keyArray.length/12)
+  for(var r = 0; r<r3; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X3");
+  }
+
+  // insert for blanks
+  // var r4 = 4;
+  var r4 = 1 + floor(keyArray.length/18)
+  for(var r = 0; r<r4; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X4");
+  }
+
+  // insert for clouds
+  // var r5 = 4;
+  var r5 = 1 + floor(keyArray.length/10)
+  for(var r = 0; r<r5; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X5");
+  }
+
+  // insert for zigzag
+  // var r6 = 4;
+  var r6 = 1 + floor(keyArray.length/15)
+  for(var r = 0; r<r6; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X6");
+  }
+
+  // insert for gradient
+  // var r7 = 4;
+  var r7 = 1 + floor(keyArray.length/12)
+  for(var r = 0; r<r7; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X7");
+  }
+
+  // insert for boxes
+  // var r8 = 4;
+  var r8 = floor(keyArray.length/15)
+  for(var r = 0; r<r8; r++){
+    var insertPoint = round(random(keyArray.length));
+    keyArray.splice(insertPoint, 0, "X8");
+  }
 }
 
 function hideWidget(){
   widgetOn = !widgetOn;
-  const w = document.getElementById('widget');
-  if (w) w.style.display = widgetOn ? "block" : "none";
+  if(widgetOn==true){
+    document.getElementById('widget').style.display = "block";
+  } else {
+    document.getElementById('widget').style.display = "none";
+  }
 }
 
 function invert(){
   inverter = !inverter;
-  if (inverter){
-    bkgdColor = color('#ffffff'); foreColor = color('#000000'); colorA[4] = bkgdColor;
+  if(inverter == true){
+    bkgdColor = color('#ffffff');
+    foreColor = color('#000000');
+    colorA[4] = bkgdColor;
+    pImg[6] = loadImage("construct/resources/gifs/6i.gif");
+
+    pGradientH();
+    pGradientV();
+    pGradientCH();
+
+    setText();
   } else {
-    bkgdColor = color('#000000'); foreColor = color('#ffffff'); colorA[4] = bkgdColor;
+    bkgdColor = color('#000000');
+    foreColor = color('#ffffff');
+    colorA[4] = bkgdColor;
+    pImg[6] = loadImage("construct/resources/gifs/6.gif");
+
+    pGradientH();
+    pGradientV();
+    pGradientCH();
+
+    setText();
   }
-  if (typeof pGradientH  === 'function') pGradientH();
-  if (typeof pGradientV  === 'function') pGradientV();
-  if (typeof pGradientCH === 'function') pGradientCH();
-  setText();
 }
 
 function setWpadding(val){
   wPad = val;
   wWindow = width - map(wPad, 0, 100, 0, width);
+
   setText();
 }
 
+
 function setStripH(val){
   stripH = round(val);
+
   setText();
 }
-// ------------- end update.js -------------
