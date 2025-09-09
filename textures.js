@@ -1,143 +1,153 @@
-// sketch.js — portable version for GitHub Pages / Squarespace
+//////////////////////////////////////////////
+/////////////////////////////       TEXT
+//////////////////////////////////////////////
 
-// ---------- Globals shared across your files ----------
-let pgT = [];               // text/graphic textures
-let pEntry = [];            // Entry objects
-let heightRatio = [];       // width/height ratios
-let sHarry = [];            // per-line heights
+function pgTexture1(inp, typeP, p, sH){
+  textSize(pgTextSize);
+  textFont(tFont[typeP]);
+  var repeatSize = round(textWidth(inp + " "));
 
-let tFont = [];             // fonts (we'll use system fonts)
-let pImg = [];              // images/GIFs (optional if using animated DOM <img>)
+  pgT[p] = createGraphics(repeatSize, pgTextSize * 1.0);
 
-let pGradV, pGradH, pGradCH; // gradient graphics
+  // pgT[p].background(bkgdColor);
 
-let pgTextSize = 80;
-let bkgdColor, foreColor;
+  pgT[p].fill(foreColor);
+  pgT[p].noStroke();
+  pgT[p].textSize(pgTextSize);
+  pgT[p].textAlign(CENTER);
+  pgT[p].textFont(tFont[typeP]);
+  pgT[p].text(inp, pgT[p].width/2, pgT[p].height/2 + pgTextSize*0.7/2);
 
-let keyText = "";
-let keyArray = [];
-let xNudge = [];            // per-line x offsets
-let wordCount = [];         // words per line
-
-let stripH = 70;            // band height
-let wWindow = 0;            // working window width
-let wPad = 60;              // padding (higher = narrower column)
-let fullHeight = 0;         // computed total layout height
-
-let colorA = [];            // palette
-
-let widgetOn = true;
-let inverter = false;
-let typeToggle = 1;         // font variation selector
-
-// animated GIF support
-let gifEls = [];      // HTMLImageElements created via createImg()
-let gifIndex = [];    // tokenIndex -> which GIF (0..10)
-
-// --- layout randomness controls ---
-let LINE_PAD     = 24;    // base vertical padding
-let WORD_PAD     = 12;    // base horizontal padding
-let SHAPE_SCALE  = 0.85;  // shrink non-text shapes
-let PAD_JITTER   = 0.35;  // ±35% randomness on padding
-let SIZE_JITTER  = 0.25;  // ±25% randomness on token size
-
-let GIF_DENSITY  = 1.3;   // more "X0" insertions
-
-// ---------- preload: optional (kept for logging) ----------
-function preload() {
-  tFont[0] = 'system-ui';
-  tFont[1] = 'system-ui';
-  tFont[2] = 'system-ui';
-
-  // Loading with p5.image() is optional if you use animated <img> in setup().
-  // Keeping it for visibility/logging:
-  pImg = [];
-  for (let i = 0; i <= 10; i++) {
-    pImg[i] = loadImage(
-      "construct/resources/gifs/" + i + ".gif",
-      () => console.log("Loaded GIF " + i),
-      () => console.warn("Failed to load GIF " + i)
-    );
-  }
+  heightRatio[p] = pgT[p].width * sH/pgT[p].height;
 }
 
-// ---------- setup: create full-viewport canvas ----------
-function setup() {
-  const host = document.getElementById('construct-container') || document.body;
-  const cnv = createCanvas(host.clientWidth, host.clientHeight);
-  cnv.parent(host);
-  frameRate(30);
-
-  // Create hidden <img> elements for each GIF (these actually animate)
-  for (let i = 0; i <= 10; i++) {
-    const el = createImg(`construct/resources/gifs/${i}.gif`);
-    el.attribute('alt', `gif${i}`);
-    el.style('display', 'none');   // keep off layout
-    el.elt.decoding = 'sync';
-    gifEls[i] = el;                // store p5.Element
-  } // <-- IMPORTANT: close the loop here
-
-  // textures.js — only the pgImage function shown
-
-function pgImage(p, sH) {
-  const pWidth = 120;
-
-  // choose which GIF this token uses (stable by index)
-  const r = p % 11;          // or: floor(random(0, 11)) for random each build
-  gifIndex[p] = r;
-
-  // placeholder graphic for layout math
+// textures.js — replace pgImage with this portable version
+function pgImage(p, sH){
+  var pWidth = 120;
   pgT[p] = createGraphics(pWidth, sH);
   pgT[p].noStroke();
   pgT[p].fill(foreColor);
   pgT[p].rect(0, 0, pWidth, sH);
-
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
 
 
-  // Colors / palette
-  bkgdColor = color('#000000');
-  foreColor = color('#ffffff');
-  colorA[0] = color('#25d964'); // green
-  colorA[1] = color('#f24f13'); // orange
-  colorA[2] = color('#f2b90f'); // yellow
-  colorA[3] = color('#0f5cbf'); // blue
-  colorA[4] = bkgdColor;
 
-  // Build gradients if helpers are present
-  if (typeof pGradientH  === 'function') pGradientH();
-  if (typeof pGradientV  === 'function') pGradientV();
-  if (typeof pGradientCH === 'function') pGradientCH();
+function pSlash(p, sH){
+  var rSel = round(random(2));
+  var pWidth = random(50, 350);
 
-  // Compute working width and render
-  wWindow = width - map(wPad, 0, 100, 0, width);
-  if (typeof setText === 'function') setText();
+  pgT[p] = createGraphics(pWidth, sH);
+
+  pgT[p].stroke(foreColor);
+  pgT[p].strokeWeight(1);
+  pgT[p].noFill();
+
+  if(rSel == 0){
+    pgT[p].line(5, 5, pgT[p].width - 5, pgT[p].height - 5);
+  } else if(rSel == 1){
+    pgT[p].line(5, 5, pgT[p].width - 5, pgT[p].height - 5);
+    pgT[p].rect(5, 5, pgT[p].width - 10, pgT[p].height - 10);
+  } else {
+    pgT[p].line(pgT[p].width/2 - 10, pgT[p].height/2 - 10, pgT[p].width/2 + 10, pgT[p].height/2 + 10);
+    pgT[p].line(pgT[p].width/2 - 10, pgT[p].height/2 + 10, pgT[p].width/2 + 10, pgT[p].height/2 - 10);
+    pgT[p].rect(5, 5, pgT[p].width - 10, pgT[p].height - 10);
+  }
+
+  heightRatio[p] = pgT[p].width * sH/pgT[p].height;
 }
 
-// ---------- draw: center layout and render ----------
-function draw() {
-  background(bkgdColor);
-  const fh = (typeof fullHeight !== 'undefined') ? fullHeight : 0;
+function pRound(p, sH){
+  var rSel = round(random(2));
+  var pWidth = random(sH/2, sH * 2);
 
-  push();
-  translate(width / 2, height / 2 - fh / 2);
-  if (typeof italicWave0 === 'function') italicWave0();
-  pop();
+  pgT[p] = createGraphics(pWidth, sH);
+
+  if(rSel == 0){
+    pgT[p].stroke(foreColor);
+    pgT[p].strokeWeight(1);
+    pgT[p].noFill();
+
+    pgT[p].ellipse(pgT[p].width/2, pgT[p].height/2, pgT[p].width - 10, pgT[p].height - 10);
+  } else if(rSel == 1){
+    pgT[p].fill(foreColor);
+    pgT[p].noStroke();
+
+    pgT[p].ellipse(pgT[p].width/2, pgT[p].height/2, pgT[p].width - 10, pgT[p].height - 10);
+  } else {
+    pgT[p].stroke(foreColor);
+    pgT[p].strokeWeight(1);
+    pgT[p].noFill();
+
+    pgT[p].line(pgT[p].width/2 - 10, pgT[p].height/2 - 10, pgT[p].width/2 + 10, pgT[p].height/2 + 10);
+    pgT[p].line(pgT[p].width/2 - 10, pgT[p].height/2 + 10, pgT[p].width/2 + 10, pgT[p].height/2 - 10);
+    pgT[p].ellipse(pgT[p].width/2, pgT[p].height/2, pgT[p].width - 10, pgT[p].height - 10);
+  }
+
+  heightRatio[p] = pgT[p].width * sH/pgT[p].height;
 }
 
-// ---------- responsive resize ----------
-function windowResized() {
-  const host = document.getElementById('construct-container') || document.body;
-  resizeCanvas(host.clientWidth, host.clientHeight);
-  wWindow = width - map(wPad, 0, 100, 0, width);
-  if (typeof setText === 'function') setText();
+function pBlank(p, sH){
+  var pWidth = random(50, 350);
+
+  pgT[p] = createGraphics(pWidth, sH);
+
+  heightRatio[p] = pgT[p].width * sH/pgT[p].height;
 }
 
-// ---------- live-update text from <textarea> ----------
-document.addEventListener('DOMContentLoaded', () => {
-  const ta = document.getElementById('textArea');
-  if (ta) ta.addEventListener('input', () => {
-    if (typeof setText === 'function') setText();
-  });
-});
+function pGradientH(){
+  var steps = 512;
+
+  pGradH = createGraphics(1024, 512);
+
+  for(var i = 0; i<steps; i++){
+    var gradientColor;
+    if(i<steps* 1/5){
+      gradientColor = lerpColor(colorA[0], colorA[1], i/(steps/5));
+    } else if(i<steps * 2/5){
+      gradientColor = lerpColor(colorA[1], colorA[2], (i - steps/5)/(steps/5));
+    } else if(i<steps * 3/5){
+      gradientColor = lerpColor(colorA[2], colorA[3], (i - steps*2/5)/(steps/5));
+    } else if(i<steps * 4/5){
+      gradientColor = lerpColor(colorA[3], colorA[4], (i - steps*3/5)/(steps/5));
+    } else {
+      gradientColor = lerpColor(colorA[4], bkgdColor, (i - steps*4/5)/(steps/5));
+    }
+    pGradH.stroke(gradientColor);
+    pGradH.strokeWeight(2);
+    pGradH.line(i*2, 0, i*2, pGradH.height);
+  }
+}
+
+function pGradientV(){
+  var steps = 256;
+
+  pGradV = createGraphics(1024, 512);
+
+  for(var i = 0; i<steps; i++){
+    var  gradientColor = lerpColor(colorA[0], colorA[4], i/steps);
+
+    pGradV.stroke(gradientColor);
+    pGradV.strokeWeight(2);
+    pGradV.line(0, i*2, pGradV.width, i*2);
+  }
+}
+
+function pGradientCH(){
+  var steps = 512;
+
+  pGradCH = createGraphics(1024, 512);
+
+  for(var i = 0; i<steps; i++){
+    var gradientColor;
+    if(i<steps/2){
+      gradientColor = lerpColor(bkgdColor, colorA[1], i/(steps/2));
+    } else {
+      gradientColor = lerpColor(colorA[1], bkgdColor, (i - steps/2)/(steps/2));
+
+    }
+    pGradCH.stroke(gradientColor);
+    pGradCH.strokeWeight(2);
+    pGradCH.line(i*2, 0, i*2, pGradCH.height);
+  }
+}
