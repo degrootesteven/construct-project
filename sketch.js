@@ -1,15 +1,21 @@
-// sketch.js — loads local fonts + drives the sketch
+// sketch.js — loads local fonts + drives the sketch (no textarea)
 
-// ---------- Globals shared across your files ----------
+// ---------- Shared state ----------
 let pgT = [];               // text/graphic textures
 let pEntry = [];            // Entry objects
 let heightRatio = [];       // width/height ratios
 let sHarry = [];            // per-line heights
 
-// Own these on window so other files can reference without re-declaring
-window.tFont = window.tFont || [];            // p5.Font objects
-window.typeToggle = window.typeToggle ?? 0;   // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
-window.pgTextSize = window.pgTextSize ?? 80;  // let update.js read a single source of truth
+// expose these so update.js can read them without re-declaring
+window.tFont = window.tFont || [];          // p5.Font objects
+window.typeToggle = window.typeToggle ?? 0; // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
+window.pgTextSize = window.pgTextSize || 80;
+
+// If the page didn’t set a fixed copy, provide a safe default
+if (typeof window.DEFAULT_TEXT !== 'string') {
+  window.DEFAULT_TEXT =
+    "STEVEN DEGROOTE Graphic Designer Marketing Strategy Brand Development User Interface";
+}
 
 let pImg = [];              // images/GIFs
 let pGradV, pGradH, pGradCH;
@@ -36,34 +42,34 @@ let WORD_PAD      = 8;
 let SHAPE_DENSITY = 0.6;
 let SHAPE_SCALE   = 0.85;
 
+
 // ---------- preload: load local fonts + GIFs ----------
 function preload() {
-  // Match your repo: /construct/resources/fonts/...
-  const FONT_DIR = 'construct/resources/fonts/';
+  const FONT_DIR = 'construct/resources/fonts/'; // match your repo layout
   const F = window.tFont;
 
-  const tryLoad = (filename, idx) =>
-    loadFont(
-      FONT_DIR + filename,
-      f => F[idx] = f,
-      () => { console.warn('Font load failed:', FONT_DIR + filename); F[idx] = null; }
+  const tryLoad = (path, idx) =>
+    loadFont(path,
+      f => (F[idx] = f),
+      () => { console.warn('Font load failed:', path); F[idx] = null; }
     );
 
-  tryLoad('Inter-Regular.ttf',            0); // Sans
-  tryLoad('PlayfairDisplay-Regular.ttf',  1); // Serif
-  tryLoad('SpaceMono-Regular.ttf',        2); // Mono
-  tryLoad('BebasNeue-Regular.ttf',        3); // Display
+  tryLoad(FONT_DIR + 'Inter-Regular.ttf',           0); // Sans
+  tryLoad(FONT_DIR + 'PlayfairDisplay-Regular.ttf', 1); // Serif
+  tryLoad(FONT_DIR + 'SpaceMono-Regular.ttf',       2); // Mono
+  tryLoad(FONT_DIR + 'BebasNeue-Regular.ttf',       3); // Display
 
   // GIFs 0..10
   pImg = [];
   for (let i = 0; i <= 10; i++) {
     pImg[i] = loadImage(
       'construct/resources/gifs/' + i + '.gif',
-      null,
+      () => console.log('Loaded GIF', i),
       () => console.warn('Failed to load GIF', i)
     );
   }
 }
+
 
 // ---------- setup ----------
 function setup() {
@@ -86,12 +92,14 @@ function setup() {
   if (typeof pGradientV  === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
 
-  // Safe default; update.js swaps to p5.Font when loaded
+  // Draw immediately with a safe system font; update.js swaps to p5.Font when available
   textFont('system-ui');
 
   wWindow = width - map(wPad, 0, 100, 0, width);
+
   if (typeof setText === 'function') setText();
 }
+
 
 // ---------- draw ----------
 function draw() {
@@ -104,6 +112,7 @@ function draw() {
   pop();
 }
 
+
 // ---------- responsive ----------
 function windowResized() {
   const host = document.getElementById('construct-container') || document.body;
@@ -112,13 +121,6 @@ function windowResized() {
   if (typeof setText === 'function') setText();
 }
 
-// ---------- live text ----------
-document.addEventListener('DOMContentLoaded', () => {
-  const ta = document.getElementById('textArea');
-  if (ta) ta.addEventListener('input', () => {
-    if (typeof setText === 'function') setText();
-  });
-});
 
 // ---------- simple font controls ----------
 function setFontMode(i){
