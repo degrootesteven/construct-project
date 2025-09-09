@@ -5,28 +5,25 @@
 // Helpers to grab a font safely
 function getFace(i) {
   const tf = window.tFont || [];
-  return tf[i] || tf[0] || 'sans-serif';
+  return tf[i] || tf[0] || 'system-ui';
 }
 
 // ------------ TEXTURES ------------
 function pgTexture1(inp, typeP, p, sH){
   // set canvas font so textWidth is measured correctly
+  const size = window.pgTextSize || 80;
   textFont(getFace(typeP));
-  textSize(window.pgTextSize || 80);
+  textSize(size);
 
   const repeatSize = round(textWidth(inp + " "));
-  pgT[p] = createGraphics(repeatSize, (window.pgTextSize || 80) * 1.0);
+  pgT[p] = createGraphics(repeatSize, size * 1.0);
 
   pgT[p].fill(foreColor);
   pgT[p].noStroke();
   pgT[p].textFont(getFace(typeP));
-  pgT[p].textSize(window.pgTextSize || 80);
+  pgT[p].textSize(size);
   pgT[p].textAlign(CENTER);
-  pgT[p].text(
-    inp,
-    pgT[p].width / 2,
-    pgT[p].height / 2 + (window.pgTextSize || 80) * 0.7 / 2
-  );
+  pgT[p].text(inp, pgT[p].width / 2, pgT[p].height / 2 + size * 0.7 / 2);
 
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
@@ -136,11 +133,11 @@ function pGradientCH(){
 
 // ------------ INSERTS BETWEEN WORDS ------------
 function randomInsert(){
-  const N = keyArray.length;                      // words
+  const N = keyArray.length;                             // words
   const gaps = Array.from({ length: N + 1 }, (_, i) => i); // 0..N
   const inserts = new Map();
 
-  // scale counts by optional SHAPE_DENSITY (0..1)
+  // density (0..1). If undefined, default to 1.
   const sd = typeof SHAPE_DENSITY === 'number' ? constrain(SHAPE_DENSITY, 0, 1) : 1;
 
   let pool = gaps.slice();
@@ -148,7 +145,7 @@ function randomInsert(){
     if (!pool.length) return null;
     const idx = floor(random(pool.length));
     return pool.splice(idx, 1)[0];
-  };
+    };
   const addTokens = (sym, count) => {
     count = max(0, round(count * sd));
     for (let r = 0; r < count; r++){
@@ -241,7 +238,8 @@ function setText() {
     else if (token === "X8")   { pBlank(k, sH);  ver = 8; }
     else {
       const rFont = random(10);
-      pgTexture1(token, rFont < 8 ? 0 : typeToggle, k, sH);
+      // IMPORTANT: always reference window.typeToggle here
+      pgTexture1(token, rFont < 8 ? 0 : window.typeToggle, k, sH);
       ver = 9;
     }
 
@@ -258,7 +256,7 @@ function setText() {
 }
 
 // ------------ HELPERS ------------
-function reRoll(){ typeToggle = round(random(1, 2)); setText(); }
+function reRoll(){ window.typeToggle = round(random(1, 2)); setText(); }
 function aSet(ticker, influ){
   const t = ticker % 1;
   return pow(t, influ) / (pow(t, influ) + pow(1 - t, influ));
