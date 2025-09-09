@@ -1,65 +1,32 @@
 //////////////////////////////////////////////
-// update.js (textures merged) + FONT SUPPORT
+// update.js (textures merged) — uses window.tFont from sketch.js
 //////////////////////////////////////////////
 
-// ------------ FONTS ------------
-let tFont = window.tFont || [];
-let typeToggle = window.typeToggle || 0;
-if (typeof window.pgTextSize === 'undefined') window.pgTextSize = 48;
-
-// Update these paths to match your repo structure
-const FONT_PATHS = [
-  'resources/fonts/Inter-Regular.ttf',            // 0 Sans
-  'resources/fonts/PlayfairDisplay-Regular.ttf',  // 1 Serif
-  'resources/fonts/SpaceMono-Regular.ttf',        // 2 Mono
-  'resources/fonts/BebasNeue-Regular.ttf'         // 3 Display
-];
-
-let _fontLoading = false;
-function loadFonts(cb){
-  if (_fontLoading) return;
-  _fontLoading = true;
-  const temp = new Array(FONT_PATHS.length);
-  let remaining = FONT_PATHS.length;
-  FONT_PATHS.forEach((url, i)=>{
-    loadFont(
-      url,
-      f => { temp[i]=f; if(--remaining===0){ tFont=temp; _fontLoading=false; cb&&cb(); } },
-      err => { console.warn('Font failed:', url, err); temp[i]=temp[i]||tFont[0]; if(--remaining===0){ tFont=temp; _fontLoading=false; cb&&cb(); } }
-    );
-  });
+// Helpers to grab a font safely
+function getFace(i) {
+  const tf = window.tFont || [];
+  return tf[i] || tf[0] || 'sans-serif';
 }
-function ensureFontsLoaded(){
-  if (!Array.isArray(tFont) || tFont.length !== FONT_PATHS.length || !tFont[0]) {
-    loadFonts(()=> setText()); // rebuild once fonts arrive
-  }
-}
-function setFontMode(i){
-  typeToggle = constrain(int(i), 0, max(0, (tFont?.length||1)-1));
-  setText();
-}
-function cycleFont(){
-  const n = (tFont?.length || 1);
-  typeToggle = (typeToggle + 1) % n;
-  setText();
-}
-window.setFontMode = setFontMode;
-window.cycleFont  = cycleFont;
 
 // ------------ TEXTURES ------------
 function pgTexture1(inp, typeP, p, sH){
-  const face = (tFont && tFont[typeP]) || (tFont && tFont[0]) || null;
-  if (face) textFont(face);
-  textSize(pgTextSize);
-  const repeatSize = round(textWidth(inp + " "));
+  // set canvas font so textWidth is measured correctly
+  textFont(getFace(typeP));
+  textSize(window.pgTextSize || 80);
 
-  pgT[p] = createGraphics(repeatSize, pgTextSize * 1.0);
+  const repeatSize = round(textWidth(inp + " "));
+  pgT[p] = createGraphics(repeatSize, (window.pgTextSize || 80) * 1.0);
+
   pgT[p].fill(foreColor);
   pgT[p].noStroke();
-  if (face) pgT[p].textFont(face);
-  pgT[p].textSize(pgTextSize);
+  pgT[p].textFont(getFace(typeP));
+  pgT[p].textSize(window.pgTextSize || 80);
   pgT[p].textAlign(CENTER);
-  pgT[p].text(inp, pgT[p].width/2, pgT[p].height/2 + pgTextSize*0.7/2);
+  pgT[p].text(
+    inp,
+    pgT[p].width / 2,
+    pgT[p].height / 2 + (window.pgTextSize || 80) * 0.7 / 2
+  );
 
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
@@ -173,6 +140,9 @@ function randomInsert(){
   const gaps = Array.from({ length: N + 1 }, (_, i) => i); // 0..N
   const inserts = new Map();
 
+  // scale counts by optional SHAPE_DENSITY (0..1)
+  const sd = typeof SHAPE_DENSITY === 'number' ? constrain(SHAPE_DENSITY, 0, 1) : 1;
+
   let pool = gaps.slice();
   const takeGap = () => {
     if (!pool.length) return null;
@@ -180,6 +150,7 @@ function randomInsert(){
     return pool.splice(idx, 1)[0];
   };
   const addTokens = (sym, count) => {
+    count = max(0, round(count * sd));
     for (let r = 0; r < count; r++){
       const g = takeGap();
       if (g === null) break;
@@ -209,8 +180,6 @@ function randomInsert(){
 
 // ------------ LAYOUT + LOGIC ------------
 function setText() {
-  ensureFontsLoaded(); // will re-run once fonts are ready
-
   // reset state
   pgT = [];
   pEntry = [];
