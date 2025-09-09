@@ -6,11 +6,12 @@ let pEntry = [];            // Entry objects
 let heightRatio = [];       // width/height ratios
 let sHarry = [];            // per-line heights
 
-// Fonts live on window to avoid "already declared" between files
-window.tFont = window.tFont || [];   // p5.Font objects (loaded in preload)
-let pImg = [];                        // images/GIFs
+// Own these on window so other files can reference without re-declaring
+window.tFont = window.tFont || [];       // p5.Font objects
+window.typeToggle = window.typeToggle ?? 0; // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
 
-let pGradV, pGradH, pGradCH;          // gradient graphics
+let pImg = [];              // images/GIFs
+let pGradV, pGradH, pGradCH;
 
 let pgTextSize = 80;
 let bkgdColor, foreColor;
@@ -26,29 +27,31 @@ let wPad = 60;              // padding (narrower text column)
 let fullHeight = 0;         // computed total layout height
 
 let colorA = [];            // palette
-
 let widgetOn = true;
 let inverter = false;
 
-// which font family index update.js will use via textFont(window.tFont[typeP])
-let typeToggle = 0;         // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
-
-// --- layout & density controls (consumed by update.js) ---
-let LINE_PAD      = 18;   // extra pixels between lines (vertical)
-let WORD_PAD      = 8;    // extra pixels between tokens (horizontal)
-let SHAPE_DENSITY = 0.6;  // 0..1, lower = fewer shapes
-let SHAPE_SCALE   = 0.85; // 0..1, shrink shapes inside their strip
-
+// layout & density (used by update.js)
+let LINE_PAD      = 18;
+let WORD_PAD      = 8;
+let SHAPE_DENSITY = 0.6;
+let SHAPE_SCALE   = 0.85;
 
 // ---------- preload: load local fonts + GIFs ----------
 function preload() {
-  // Local fonts (ensure these files/paths exist exactly)
-  window.tFont[0] = loadFont('resources/fonts/Inter-Regular.ttf');            // Sans
-  window.tFont[1] = loadFont('resources/fonts/PlayfairDisplay-Regular.ttf');  // Serif
-  window.tFont[2] = loadFont('resources/fonts/SpaceMono-Regular.ttf');        // Mono
-  window.tFont[3] = loadFont('resources/fonts/BebasNeue-Regular.ttf');        // Display
+  // Make sure these exact files exist at /resources/fonts/
+  const F = window.tFont;
+  const tryLoad = (path, idx) =>
+    loadFont(path,
+      f => F[idx] = f,
+      () => { console.warn('Font load failed:', path); F[idx] = null; }
+    );
 
-  // Load GIFs 0..10 from construct/resources/gifs/
+  tryLoad('resources/fonts/Inter-Regular.ttf',            0); // Sans
+  tryLoad('resources/fonts/PlayfairDisplay-Regular.ttf',  1); // Serif
+  tryLoad('resources/fonts/SpaceMono-Regular.ttf',        2); // Mono
+  tryLoad('resources/fonts/BebasNeue-Regular.ttf',        3); // Display
+
+  // GIFs 0..10
   pImg = [];
   for (let i = 0; i <= 10; i++) {
     pImg[i] = loadImage(
@@ -59,37 +62,37 @@ function preload() {
   }
 }
 
-// ---------- setup: create full-viewport canvas ----------
+// ---------- setup ----------
 function setup() {
   const host = document.getElementById('construct-container') || document.body;
   const cnv = createCanvas(host.clientWidth, host.clientHeight);
   cnv.parent(host);
   frameRate(30);
 
-  // Colors
+  // Base colors + gradients
   bkgdColor = color('#000000');
   foreColor = color('#ffffff');
 
-  colorA[0] = color('#25d964'); // green
-  colorA[1] = color('#f24f13'); // orange
-  colorA[2] = color('#f2b90f'); // yellow
-  colorA[3] = color('#0f5cbf'); // blue
+  colorA[0] = color('#25d964');
+  colorA[1] = color('#f24f13');
+  colorA[2] = color('#f2b90f');
+  colorA[3] = color('#0f5cbf');
   colorA[4] = bkgdColor;
 
-  // Build gradients if helpers are present
   if (typeof pGradientH  === 'function') pGradientH();
   if (typeof pGradientV  === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
 
-  wWindow = width - map(wPad, 0, 100, 0, width);
+  // Use a safe default immediately; update.js will swap to p5.Font when available
+  textFont('system-ui');
 
+  wWindow = width - map(wPad, 0, 100, 0, width);
   if (typeof setText === 'function') setText();
 }
 
-// ---------- draw: center layout and render ----------
+// ---------- draw ----------
 function draw() {
   background(bkgdColor);
-
   const fh = (typeof fullHeight !== 'undefined') ? fullHeight : 0;
 
   push();
@@ -98,7 +101,7 @@ function draw() {
   pop();
 }
 
-// ---------- responsive resize ----------
+// ---------- responsive ----------
 function windowResized() {
   const host = document.getElementById('construct-container') || document.body;
   resizeCanvas(host.clientWidth, host.clientHeight);
@@ -106,7 +109,7 @@ function windowResized() {
   if (typeof setText === 'function') setText();
 }
 
-// ---------- live-update text from <textarea> ----------
+// ---------- live text ----------
 document.addEventListener('DOMContentLoaded', () => {
   const ta = document.getElementById('textArea');
   if (ta) ta.addEventListener('input', () => {
@@ -116,18 +119,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ---------- simple font controls ----------
 function setFontMode(i){
-  const maxIdx = (window.tFont && window.tFont.length) ? window.tFont.length - 1 : 0;
-  typeToggle = constrain(int(i), 0, maxIdx);
+  const F = window.tFont || [];
+  const maxIdx = F.length ? F.length - 1 : 0;
+  window.typeToggle = constrain(int(i), 0, maxIdx);
   if (typeof setText === 'function') setText();
 }
 function cycleFont(){
-  const n = (window.tFont && window.tFont.length) ? window.tFont.length : 1;
-  typeToggle = (typeToggle + 1) % n;
+  const F = window.tFont || [];
+  const n = F.length || 1;
+  window.typeToggle = (window.typeToggle + 1) % n;
   if (typeof setText === 'function') setText();
 }
 function keyPressed(){
   if (key === '1') setFontMode(0); // Inter
-  if (key === '2') setFontMode(1); // Playfair Display
+  if (key === '2') setFontMode(1); // Playfair
   if (key === '3') setFontMode(2); // Space Mono
   if (key === '4') setFontMode(3); // Bebas Neue
 }
