@@ -5,13 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Construct Project</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Preload local fonts (optional but speeds up first paint) -->
+  <link rel="preload" href="construct/resources/fonts/Inter-Regular.ttf"           as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="construct/resources/fonts/PlayfairDisplay-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="construct/resources/fonts/SpaceMono-Regular.ttf"       as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="construct/resources/fonts/BebasNeue-Regular.ttf"       as="font" type="font/ttf" crossorigin>
+
   <style>
     html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
     canvas { display:block; }
     #construct-container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
   </style>
 
-  <!-- Your fixed text (no UI to edit) -->
+  <!-- Fixed text (no UI to edit) -->
   <script>
     window.DEFAULT_TEXT =
       "STEVEN DEGROOTE " +
@@ -25,18 +32,18 @@
   <!-- p5 mounts here -->
   <div id="construct-container"></div>
 
-  <!-- p5 (only once!) -->
+  <!-- p5 (only once) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
-  <!-- Your project files (bump ?v as you deploy) -->
-  <script src="entry.js?v=11"></script>
-  <script src="g_cloud.js?v=11"></script>
-  <script src="g_scribble.js?v=11"></script>
-  <script src="g_zigzag.js?v=11"></script>
-  <script src="g_gradient.js?v=11"></script>
-  <script src="g_box.js?v=11"></script>
-  <script src="update.js?v=11"></script>
-  <script src="italicWave.js?v=11"></script>
-  <script src="sketch.js?v=11"></script>
+  <!-- Project files (order matters; bump ?v when deploying to bust cache) -->
+  <script src="entry.js?v=12"></script>
+  <script src="g_cloud.js?v=12"></script>
+  <script src="g_scribble.js?v=12"></script>
+  <script src="g_zigzag.js?v=12"></script>
+  <script src="g_gradient.js?v=12"></script>
+  <script src="g_box.js?v=12"></script>
+  <script src="update.js?v=12"></script>
+  <script src="italicWave.js?v=12"></script>
+  <script src="sketch.js?v=12"></script>
 </body>
 </html>
