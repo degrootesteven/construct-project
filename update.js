@@ -134,6 +134,38 @@ function pGradientCH(){
 }
 
 //////////////////////////////////////////////
+// READABILITY RULES
+//////////////////////////////////////////////
+
+// Phrases to keep intact and text-only
+const PROTECTED_PHRASES = [
+  "STEVEN DEGROOTE",
+  "Graphic Designer",
+  "Marketing Strategy",
+  "Brand Development",
+  "User Interface"
+];
+
+// Return a Set of token indexes (in keyArray) that belong to protected phrases
+function computeProtectedIndexes(tokens){
+  const idxSet = new Set();
+  const phrases = PROTECTED_PHRASES.map(s => s.trim().split(/\s+/));
+  for (const words of phrases){
+    if (!words.length) continue;
+    for (let i = 0; i <= tokens.length - words.length; i++){
+      let ok = true;
+      for (let j = 0; j < words.length; j++){
+        if (tokens[i+j] !== words[j]) { ok = false; break; }
+      }
+      if (ok){
+        for (let j = 0; j < words.length; j++) idxSet.add(i+j);
+      }
+    }
+  }
+  return idxSet;
+}
+
+//////////////////////////////////////////////
 // LAYOUT + LOGIC
 //////////////////////////////////////////////
 
@@ -150,59 +182,101 @@ function setText() {
   keyText = enteredText;
   keyArray = enteredText ? enteredText.split(/\s+/) : [];
 
-  randomInsert();
+  // Compute protected indices *before* we insert shapes
+  const protectedIdx = computeProtectedIndexes(keyArray);
+
+  // Insert shapes only AFTER the protected block (never inside)
+  randomInsert(protectedIdx);
 
   let lineDist = 0, lineCount = 0, thisWordCount = 0;
-  let sH = stripH;
-  let rSh = random(10);
-  if (rSh > 7.5) sH = stripH / 4;
-  else if (rSh > 5) sH = stripH / 2;
 
-  const GIF_RATIO = 1.6;
   const wrapWidth = max(1, wWindow);
+  const GIF_RATIO = 1.6;
+
+  // Protected text uses stable height; decorative items can vary
+  const sH_protected = stripH;
+  let sH_dynamic = stripH;
+
+  const pickDynamicH = () => {
+    const rSh = random(10);
+    if (rSh > 7.5) return stripH / 4;
+    if (rSh > 5)   return stripH / 2;
+    return stripH;
+  };
 
   for (let k = 0; k < keyArray.length; k++) {
     if (lineDist > wrapWidth) {
       xNudge[lineCount] = lineDist;
       wordCount[lineCount] = thisWordCount;
-      sHarry[lineCount] = sH;
-      fullHeight += sH;
+      sHarry[lineCount] = sH_dynamic;
+      fullHeight += sH_dynamic;
+
       lineCount++;
       lineDist = 0;
       thisWordCount = 0;
 
-      rSh = random(10);
-      sH = stripH;
-      if (rSh > 7.5) sH = stripH / 4;
-      else if (rSh > 5) sH = stripH / 2;
+      sH_dynamic = pickDynamicH();
     }
 
-    let ver = 0, token = keyArray[k];
-    if (token === "X0") { ver = 0; heightRatio[k] = sH * GIF_RATIO; }
-    else if (token === "X1") { pSlash(k, sH); ver = 1; }
-    else if (token === "X2") { pRound(k, sH); ver = 2; }
-    else if (token === "X3") { pBlank(k, sH); ver = 3; }
-    else if (token === "X4") { pBlank(k, sH); ver = 4; }
-    else if (token === "X5") { pBlank(k, sH); ver = 5; }
-    else if (token === "X6") { pBlank(k, sH); ver = 6; }
-    else if (token === "X7") { pBlank(k, sH); ver = 7; }
-    else if (token === "X8") { pBlank(k, sH); ver = 8; }
-    else {
+    const token = keyArray[k];
+    let ver = 0;
+
+    // Protected words: always text, consistent height
+    if (protectedIdx.has(k)) {
+      pgTexture1(token, 0, k, sH_protected);
+      ver = 9;
+      thisWordCount++;
+      lineDist += (heightRatio[k] || sH_protected);
+      pEntry[k] = new Entry(k, ver, sH_protected);
+      continue;
+    }
+
+    // Non-protected
+    if (!sH_dynamic) sH_dynamic = pickDynamicH();
+
+    if (token === "X0") {                 // GIF slot
+      ver = 0;
+      heightRatio[k] = sH_dynamic * GIF_RATIO;
+
+    } else if (token === "X1") {          // SLASHES
+      pSlash(k, sH_dynamic);  ver = 1;
+
+    } else if (token === "X2") {          // CIRCLES
+      pRound(k, sH_dynamic);  ver = 2;
+
+    } else if (token === "X3") {          // SCRIBBLE
+      pBlank(k, sH_dynamic);  ver = 3;
+
+    } else if (token === "X4") {          // BLANKS
+      pBlank(k, sH_dynamic);  ver = 4;
+
+    } else if (token === "X5") {          // CLOUD
+      pBlank(k, sH_dynamic);  ver = 5;
+
+    } else if (token === "X6") {          // ZIGZAG
+      pBlank(k, sH_dynamic);  ver = 6;
+
+    } else if (token === "X7") {          // GRADIENT
+      pBlank(k, sH_dynamic);  ver = 7;
+
+    } else if (token === "X8") {          // BOXES
+      pBlank(k, sH_dynamic);  ver = 8;
+
+    } else {                              // regular text
       const rFont = random(10);
-      if (rFont < 8) pgTexture1(token, 0, k, sH);
-      else           pgTexture1(token, typeToggle, k, sH);
+      pgTexture1(token, rFont < 8 ? 0 : typeToggle, k, sH_dynamic);
       ver = 9;
     }
 
     thisWordCount++;
-    lineDist += (heightRatio[k] || sH);
-    pEntry[k] = new Entry(k, ver, sH);
+    lineDist += (heightRatio[k] || sH_dynamic);
+    pEntry[k] = new Entry(k, ver, sH_dynamic);
   }
 
   xNudge[lineCount] = lineDist;
   wordCount[lineCount] = thisWordCount;
-  sHarry[lineCount] = sH;
-  fullHeight += sH;
+  sHarry[lineCount] = sH_dynamic;
+  fullHeight += sH_dynamic;
 }
 
 // --- utilities & helpers ---
@@ -217,42 +291,37 @@ function aSet(ticker, influ){
   return pow(capTicker, influ) / (pow(capTicker, influ) + pow(1 - capTicker, influ));
 }
 
-function randomInsert(){
-  // images
-  let r0 = 1 + floor(keyArray.length / 5);
-  for (let r = 0; r < r0; r++) keyArray.splice(round(random(keyArray.length)), 0, "X0");
+/**
+ * Insert shape tokens only AFTER the protected block.
+ * @param {Set<number>} protectedIdx indexes of tokens that are protected
+ */
+function randomInsert(protectedIdx = new Set()){
+  // find the last index in the protected block
+  let lastProtected = -1;
+  for (const i of protectedIdx) if (i > lastProtected) lastProtected = i;
 
-  // slashes
-  let r1 = 1 + floor(keyArray.length / 12);
-  for (let r = 0; r < r1; r++) keyArray.splice(round(random(keyArray.length)), 0, "X1");
+  // choose insertion index >= lastProtected + 1
+  const chooseInsert = () => {
+    const start = Math.max(0, lastProtected + 1);
+    const end = Math.max(start, keyArray.length);
+    return start + round(random(end - start));
+  };
 
-  // circles
-  let r2 = 1 + floor(keyArray.length / 12);
-  for (let r = 0; r < r2; r++) keyArray.splice(round(random(keyArray.length)), 0, "X2");
+  const add = (sym, n) => {
+    for (let r = 0; r < n; r++) {
+      keyArray.splice(chooseInsert(), 0, sym);
+    }
+  };
 
-  // scribbles
-  let r3 = 1 + floor(keyArray.length / 12);
-  for (let r = 0; r < r3; r++) keyArray.splice(round(random(keyArray.length)), 0, "X3");
-
-  // blanks
-  let r4 = 1 + floor(keyArray.length / 18);
-  for (let r = 0; r < r4; r++) keyArray.splice(round(random(keyArray.length)), 0, "X4");
-
-  // clouds
-  let r5 = 1 + floor(keyArray.length / 10);
-  for (let r = 0; r < r5; r++) keyArray.splice(round(random(keyArray.length)), 0, "X5");
-
-  // zigzags
-  let r6 = 1 + floor(keyArray.length / 15);
-  for (let r = 0; r < r6; r++) keyArray.splice(round(random(keyArray.length)), 0, "X6");
-
-  // gradients
-  let r7 = 1 + floor(keyArray.length / 12);
-  for (let r = 0; r < r7; r++) keyArray.splice(round(random(keyArray.length)), 0, "X7");
-
-  // boxes
-  let r8 = floor(keyArray.length / 15);
-  for (let r = 0; r < r8; r++) keyArray.splice(round(random(keyArray.length)), 0, "X8");
+  add("X0", 1 + floor(keyArray.length / 5));   // images
+  add("X1", 1 + floor(keyArray.length / 12));  // slashes
+  add("X2", 1 + floor(keyArray.length / 12));  // circles
+  add("X3", 1 + floor(keyArray.length / 12));  // scribbles
+  add("X4", 1 + floor(keyArray.length / 18));  // blanks
+  add("X5", 1 + floor(keyArray.length / 10));  // clouds
+  add("X6", 1 + floor(keyArray.length / 15));  // zigzags
+  add("X7", 1 + floor(keyArray.length / 12));  // gradients
+  add("X8",      floor(keyArray.length / 15)); // boxes
 }
 
 function hideWidget(){
