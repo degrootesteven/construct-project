@@ -7,13 +7,13 @@ let heightRatio = [];       // width/height ratios
 let sHarry = [];            // per-line heights
 
 // Own these on window so other files can reference without re-declaring
-window.tFont = window.tFont || [];       // p5.Font objects
-window.typeToggle = window.typeToggle ?? 0; // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
+window.tFont = window.tFont || [];            // p5.Font objects
+window.typeToggle = window.typeToggle ?? 0;   // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
+window.pgTextSize = window.pgTextSize ?? 80;  // let update.js read a single source of truth
 
 let pImg = [];              // images/GIFs
 let pGradV, pGradH, pGradCH;
 
-let pgTextSize = 80;
 let bkgdColor, foreColor;
 
 let keyText = "";
@@ -38,25 +38,28 @@ let SHAPE_SCALE   = 0.85;
 
 // ---------- preload: load local fonts + GIFs ----------
 function preload() {
-  // Make sure these exact files exist at /resources/fonts/
+  // Match your repo: /construct/resources/fonts/...
+  const FONT_DIR = 'construct/resources/fonts/';
   const F = window.tFont;
-  const tryLoad = (path, idx) =>
-    loadFont(path,
+
+  const tryLoad = (filename, idx) =>
+    loadFont(
+      FONT_DIR + filename,
       f => F[idx] = f,
-      () => { console.warn('Font load failed:', path); F[idx] = null; }
+      () => { console.warn('Font load failed:', FONT_DIR + filename); F[idx] = null; }
     );
 
-  tryLoad('resources/fonts/Inter-Regular.ttf',            0); // Sans
-  tryLoad('resources/fonts/PlayfairDisplay-Regular.ttf',  1); // Serif
-  tryLoad('resources/fonts/SpaceMono-Regular.ttf',        2); // Mono
-  tryLoad('resources/fonts/BebasNeue-Regular.ttf',        3); // Display
+  tryLoad('Inter-Regular.ttf',            0); // Sans
+  tryLoad('PlayfairDisplay-Regular.ttf',  1); // Serif
+  tryLoad('SpaceMono-Regular.ttf',        2); // Mono
+  tryLoad('BebasNeue-Regular.ttf',        3); // Display
 
   // GIFs 0..10
   pImg = [];
   for (let i = 0; i <= 10; i++) {
     pImg[i] = loadImage(
       'construct/resources/gifs/' + i + '.gif',
-      () => console.log('Loaded GIF', i),
+      null,
       () => console.warn('Failed to load GIF', i)
     );
   }
@@ -83,7 +86,7 @@ function setup() {
   if (typeof pGradientV  === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
 
-  // Use a safe default immediately; update.js will swap to p5.Font when available
+  // Safe default; update.js swaps to p5.Font when loaded
   textFont('system-ui');
 
   wWindow = width - map(wPad, 0, 100, 0, width);
