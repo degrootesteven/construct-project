@@ -2,7 +2,7 @@
 // update.js (merged textures.js inside)
 //////////////////////////////////////////////
 
-// --- TEXTURES (merged from textures.js) ---
+// --- TEXTURES ---
 function pgTexture1(inp, typeP, p, sH){
   textSize(pgTextSize);
   textFont(tFont[typeP]);
@@ -89,13 +89,13 @@ function pGradientH(){
   pGradH = createGraphics(1024, 512);
   for(let i = 0; i<steps; i++){
     let gradientColor;
-    if(i<steps* 1/5){
+    if(i<steps*1/5){
       gradientColor = lerpColor(colorA[0], colorA[1], i/(steps/5));
-    } else if(i<steps * 2/5){
+    } else if(i<steps*2/5){
       gradientColor = lerpColor(colorA[1], colorA[2], (i - steps/5)/(steps/5));
-    } else if(i<steps * 3/5){
+    } else if(i<steps*3/5){
       gradientColor = lerpColor(colorA[2], colorA[3], (i - steps*2/5)/(steps/5));
-    } else if(i<steps * 4/5){
+    } else if(i<steps*4/5){
       gradientColor = lerpColor(colorA[3], colorA[4], (i - steps*3/5)/(steps/5));
     } else {
       gradientColor = lerpColor(colorA[4], bkgdColor, (i - steps*4/5)/(steps/5));
@@ -134,7 +134,7 @@ function pGradientCH(){
 }
 
 //////////////////////////////////////////////
-// LAYOUT + LOGIC (your old update.js)
+// LAYOUT + LOGIC
 //////////////////////////////////////////////
 
 function setText() {
@@ -205,4 +205,95 @@ function setText() {
   fullHeight += sH;
 }
 
-// ... keep reRoll, aSet, randomInsert, hideWidget, invert, setWpadding, setStripH, window.exposures unchanged
+// --- HELPERS ---
+function reRoll(){
+  typeToggle = round(random(1, 2));
+  setText();
+}
+
+function aSet(ticker, influ){
+  const capTicker = ticker % 1;
+  return pow(capTicker, influ) / (pow(capTicker, influ) + pow(1 - capTicker, influ));
+}
+
+function randomInsert(){
+  // images
+  let r0 = 1 + floor(keyArray.length / 5);
+  for (let r = 0; r < r0; r++) keyArray.splice(round(random(keyArray.length)), 0, "X0");
+
+  // slashes
+  let r1 = 1 + floor(keyArray.length / 12);
+  for (let r = 0; r < r1; r++) keyArray.splice(round(random(keyArray.length)), 0, "X1");
+
+  // circles
+  let r2 = 1 + floor(keyArray.length / 12);
+  for (let r = 0; r < r2; r++) keyArray.splice(round(random(keyArray.length)), 0, "X2");
+
+  // scribbles
+  let r3 = 1 + floor(keyArray.length / 12);
+  for (let r = 0; r < r3; r++) keyArray.splice(round(random(keyArray.length)), 0, "X3");
+
+  // blanks
+  let r4 = 1 + floor(keyArray.length / 18);
+  for (let r = 0; r < r4; r++) keyArray.splice(round(random(keyArray.length)), 0, "X4");
+
+  // clouds
+  let r5 = 1 + floor(keyArray.length / 10);
+  for (let r = 0; r < r5; r++) keyArray.splice(round(random(keyArray.length)), 0, "X5");
+
+  // zigzags
+  let r6 = 1 + floor(keyArray.length / 15);
+  for (let r = 0; r < r6; r++) keyArray.splice(round(random(keyArray.length)), 0, "X6");
+
+  // gradients
+  let r7 = 1 + floor(keyArray.length / 12);
+  for (let r = 0; r < r7; r++) keyArray.splice(round(random(keyArray.length)), 0, "X7");
+
+  // boxes
+  let r8 = floor(keyArray.length / 15);
+  for (let r = 0; r < r8; r++) keyArray.splice(round(random(keyArray.length)), 0, "X8");
+}
+
+function hideWidget(){
+  widgetOn = !widgetOn;
+  document.getElementById('widget').style.display = widgetOn ? "block" : "none";
+}
+
+function invert(){
+  inverter = !inverter;
+  if (inverter) {
+    bkgdColor = color('#ffffff');
+    foreColor = color('#000000');
+  } else {
+    bkgdColor = color('#000000');
+    foreColor = color('#ffffff');
+  }
+  colorA[4] = bkgdColor;
+
+  if (typeof pGradientH === 'function') pGradientH();
+  if (typeof pGradientV === 'function') pGradientV();
+  if (typeof pGradientCH === 'function') pGradientCH();
+
+  setText();
+}
+
+function setWpadding(val){
+  wPad = val;
+  wWindow = width - map(wPad, 0, 100, 0, width);
+  setText();
+}
+
+function setStripH(val){
+  stripH = round(val);
+  setText();
+}
+
+// Expose globally
+window.setText = setText;
+window.reRoll = reRoll;
+window.aSet = aSet;
+window.randomInsert = randomInsert;
+window.hideWidget = hideWidget;
+window.invert = invert;
+window.setWpadding = setWpadding;
+window.setStripH = setStripH;
