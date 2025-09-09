@@ -1,5 +1,8 @@
 //////////////////////////////////////////////
-// update.js (textures merged) — uses window.tFont from sketch.js
+// update.js (textures merged) — fixed text mode
+// - reads fonts from window.tFont (set in sketch.js)
+// - reads family index from window.typeToggle
+// - reads immutable copy text from window.DEFAULT_TEXT
 //////////////////////////////////////////////
 
 // Helpers to grab a font safely
@@ -10,20 +13,25 @@ function getFace(i) {
 
 // ------------ TEXTURES ------------
 function pgTexture1(inp, typeP, p, sH){
-  // set canvas font so textWidth is measured correctly
   const size = window.pgTextSize || 80;
+
+  // set canvas font so textWidth is measured correctly
   textFont(getFace(typeP));
   textSize(size);
 
   const repeatSize = round(textWidth(inp + " "));
-  pgT[p] = createGraphics(repeatSize, size * 1.0);
+  pgT[p] = createGraphics(repeatSize, size);
 
   pgT[p].fill(foreColor);
   pgT[p].noStroke();
   pgT[p].textFont(getFace(typeP));
   pgT[p].textSize(size);
   pgT[p].textAlign(CENTER);
-  pgT[p].text(inp, pgT[p].width / 2, pgT[p].height / 2 + size * 0.7 / 2);
+  pgT[p].text(
+    inp,
+    pgT[p].width / 2,
+    pgT[p].height / 2 + size * 0.7 / 2
+  );
 
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
@@ -145,7 +153,7 @@ function randomInsert(){
     if (!pool.length) return null;
     const idx = floor(random(pool.length));
     return pool.splice(idx, 1)[0];
-    };
+  };
   const addTokens = (sym, count) => {
     count = max(0, round(count * sd));
     for (let r = 0; r < count; r++){
@@ -186,8 +194,12 @@ function setText() {
   sHarry = [];
   fullHeight = 0;
 
-  // input → words
-  const enteredText = (document.getElementById("textArea")?.value || "").trim();
+  // Use fixed text from window.DEFAULT_TEXT (no textarea anymore)
+  const enteredText = (
+    (typeof window.DEFAULT_TEXT === 'string' && window.DEFAULT_TEXT) ||
+    ""
+  ).trim();
+
   keyText = enteredText;
   keyArray = enteredText ? enteredText.split(/\s+/) : [];
 
@@ -263,7 +275,8 @@ function aSet(ticker, influ){
 }
 function hideWidget(){
   widgetOn = !widgetOn;
-  document.getElementById('widget').style.display = widgetOn ? "block" : "none";
+  const w = document.getElementById('widget');
+  if (w) w.style.display = widgetOn ? "block" : "none";
 }
 function invert(){
   inverter = !inverter;
