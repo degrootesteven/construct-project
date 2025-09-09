@@ -79,4 +79,57 @@ function setup() {
   // Build gradients if helpers are present
   if (typeof pGradientH  === 'function') pGradientH();
   if (typeof pGradientV  === 'function') pGradientV();
-  if (typeof pGradientCH === 'functi
+  if (typeof pGradientCH === 'function') pGradientCH();
+
+  wWindow = width - map(wPad, 0, 100, 0, width);
+
+  if (typeof setText === 'function') setText();
+}
+
+// ---------- draw: center layout and render ----------
+function draw() {
+  background(bkgdColor);
+
+  const fh = (typeof fullHeight !== 'undefined') ? fullHeight : 0;
+
+  push();
+  translate(width / 2, height / 2 - fh / 2);
+  if (typeof italicWave0 === 'function') italicWave0();
+  pop();
+}
+
+// ---------- responsive resize ----------
+function windowResized() {
+  const host = document.getElementById('construct-container') || document.body;
+  resizeCanvas(host.clientWidth, host.clientHeight);
+  wWindow = width - map(wPad, 0, 100, 0, width);
+  if (typeof setText === 'function') setText();
+}
+
+// ---------- live-update text from <textarea> ----------
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('textArea');
+  if (ta) ta.addEventListener('input', () => {
+    if (typeof setText === 'function') setText();
+  });
+});
+
+// ---------- simple font controls ----------
+function setFontMode(i){
+  const maxIdx = (window.tFont && window.tFont.length) ? window.tFont.length - 1 : 0;
+  typeToggle = constrain(int(i), 0, maxIdx);
+  if (typeof setText === 'function') setText();
+}
+function cycleFont(){
+  const n = (window.tFont && window.tFont.length) ? window.tFont.length : 1;
+  typeToggle = (typeToggle + 1) % n;
+  if (typeof setText === 'function') setText();
+}
+function keyPressed(){
+  if (key === '1') setFontMode(0); // Inter
+  if (key === '2') setFontMode(1); // Playfair Display
+  if (key === '3') setFontMode(2); // Space Mono
+  if (key === '4') setFontMode(3); // Bebas Neue
+}
+window.setFontMode = setFontMode;
+window.cycleFont  = cycleFont;
