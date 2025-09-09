@@ -1,5 +1,5 @@
 function setText() {
-  // reset state
+  // Reset layout state
   pgT = [];
   pEntry = [];
   heightRatio = [];
@@ -8,31 +8,30 @@ function setText() {
   sHarry = [];
   fullHeight = 0;
 
-  // read input
-  const enteredText = document.getElementById("textArea").value || "";
+  // Parse input
+  const enteredText = (document.getElementById("textArea")?.value || "").trim();
   keyText = enteredText;
-  keyArray = enteredText.split(" ");
+  keyArray = enteredText ? enteredText.split(/\s+/) : [];
 
-  if (!keyArray) keyArray = [];
-
-  // inject special tokens (X0..X8)
+  // Inject special tokens (X0..X8)
   randomInsert();
 
   let lineDist = 0;
   let lineCount = 0;
   let thisWordCount = 0;
 
-  // starting strip height (randomized)
-  let rSh = random(10);
+  // Pick initial strip height
   let sH = stripH;
+  let rSh = random(10);
   if (rSh > 7.5) sH = stripH / 4;
   else if (rSh > 5) sH = stripH / 2;
 
-  const GIF_RATIO = 1.6; // width = ratio * sH (tune to taste)
+  const GIF_RATIO = 1.6; // width = ratio * sH; tweak to taste
+  const wrapWidth = max(1, wWindow); // guard
 
   for (let k = 0; k < keyArray.length; k++) {
-    // wrap to next line if needed
-    if (lineDist > wWindow) {
+    // Wrap to next line if needed
+    if (lineDist > wrapWidth) {
       xNudge[lineCount] = lineDist;
       wordCount[lineCount] = thisWordCount;
       sHarry[lineCount] = sH;
@@ -42,7 +41,7 @@ function setText() {
       lineDist = 0;
       thisWordCount = 0;
 
-      // choose next strip height
+      // Choose next strip height
       rSh = random(10);
       sH = stripH;
       if (rSh > 7.5) sH = stripH / 4;
@@ -52,36 +51,35 @@ function setText() {
     let ver = 0;
     const token = keyArray[k];
 
-    if (token === "X0") {             // GIF image (drawn in Entry.display)
+    if (token === "X0") {                 // GIF image (drawn in Entry.display)
       ver = 0;
-      // ensure layout gets a width for this slot
-      heightRatio[k] = sH * GIF_RATIO;
+      heightRatio[k] = sH * GIF_RATIO;    // give GIF slot a width for layout
 
-    } else if (token === "X1") {      // SLASHES
+    } else if (token === "X1") {          // SLASHES
       pSlash(k, sH);  ver = 1;
 
-    } else if (token === "X2") {      // CIRCLES
+    } else if (token === "X2") {          // CIRCLES
       pRound(k, sH);  ver = 2;
 
-    } else if (token === "X3") {      // SCRIBBLE
+    } else if (token === "X3") {          // SCRIBBLE
       pBlank(k, sH);  ver = 3;
 
-    } else if (token === "X4") {      // BLANKS
+    } else if (token === "X4") {          // BLANKS
       pBlank(k, sH);  ver = 4;
 
-    } else if (token === "X5") {      // CLOUD
+    } else if (token === "X5") {          // CLOUD
       pBlank(k, sH);  ver = 5;
 
-    } else if (token === "X6") {      // ZIGZAG
+    } else if (token === "X6") {          // ZIGZAG
       pBlank(k, sH);  ver = 6;
 
-    } else if (token === "X7") {      // GRADIENT
+    } else if (token === "X7") {          // GRADIENT
       pBlank(k, sH);  ver = 7;
 
-    } else if (token === "X8") {      // BOXES
+    } else if (token === "X8") {          // BOXES
       pBlank(k, sH);  ver = 8;
 
-    } else {                          // TEXT
+    } else {                              // TEXT
       const rFont = random(10);
       if (rFont < 8) pgTexture1(token, 0, k, sH);
       else           pgTexture1(token, typeToggle, k, sH);
@@ -89,13 +87,11 @@ function setText() {
     }
 
     thisWordCount++;
-    // some entries (GIF) set heightRatio manually; fall back to sH if missing
-    lineDist += (heightRatio[k] || sH);
-
+    lineDist += (heightRatio[k] || sH);   // fallback if no width computed
     pEntry[k] = new Entry(k, ver, sH);
   }
 
-  // flush the last line
+  // Flush last line
   xNudge[lineCount] = lineDist;
   wordCount[lineCount] = thisWordCount;
   sHarry[lineCount] = sH;
