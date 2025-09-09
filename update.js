@@ -1,5 +1,5 @@
 //////////////////////////////////////////////
-// update.js (merged textures.js inside)
+// update.js (textures merged)
 //////////////////////////////////////////////
 
 // --- TEXTURES ---
@@ -37,9 +37,9 @@ function pSlash(p, sH){
   pgT[p].strokeWeight(1);
   pgT[p].noFill();
 
-  if(rSel == 0){
+  if (rSel === 0){
     pgT[p].line(5, 5, pgT[p].width - 5, pgT[p].height - 5);
-  } else if(rSel == 1){
+  } else if (rSel === 1){
     pgT[p].line(5, 5, pgT[p].width - 5, pgT[p].height - 5);
     pgT[p].rect(5, 5, pgT[p].width - 10, pgT[p].height - 10);
   } else {
@@ -56,12 +56,12 @@ function pRound(p, sH){
   const pWidth = random(sH/2, sH * 2);
   pgT[p] = createGraphics(pWidth, sH);
 
-  if(rSel == 0){
+  if (rSel === 0){
     pgT[p].stroke(foreColor);
     pgT[p].strokeWeight(1);
     pgT[p].noFill();
     pgT[p].ellipse(pgT[p].width/2, pgT[p].height/2, pgT[p].width - 10, pgT[p].height - 10);
-  } else if(rSel == 1){
+  } else if (rSel === 1){
     pgT[p].fill(foreColor);
     pgT[p].noStroke();
     pgT[p].ellipse(pgT[p].width/2, pgT[p].height/2, pgT[p].width - 10, pgT[p].height - 10);
@@ -83,24 +83,18 @@ function pBlank(p, sH){
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
 
-// --- gradients ---
+// --- GRADIENTS ---
 function pGradientH(){
   const steps = 512;
   pGradH = createGraphics(1024, 512);
-  for(let i = 0; i<steps; i++){
-    let gradientColor;
-    if(i<steps*1/5){
-      gradientColor = lerpColor(colorA[0], colorA[1], i/(steps/5));
-    } else if(i<steps*2/5){
-      gradientColor = lerpColor(colorA[1], colorA[2], (i - steps/5)/(steps/5));
-    } else if(i<steps*3/5){
-      gradientColor = lerpColor(colorA[2], colorA[3], (i - steps*2/5)/(steps/5));
-    } else if(i<steps*4/5){
-      gradientColor = lerpColor(colorA[3], colorA[4], (i - steps*3/5)/(steps/5));
-    } else {
-      gradientColor = lerpColor(colorA[4], bkgdColor, (i - steps*4/5)/(steps/5));
-    }
-    pGradH.stroke(gradientColor);
+  for (let i = 0; i < steps; i++){
+    let c;
+    if (i < steps*1/5)       c = lerpColor(colorA[0], colorA[1], i/(steps/5));
+    else if (i < steps*2/5)  c = lerpColor(colorA[1], colorA[2], (i-steps/5)/(steps/5));
+    else if (i < steps*3/5)  c = lerpColor(colorA[2], colorA[3], (i-steps*2/5)/(steps/5));
+    else if (i < steps*4/5)  c = lerpColor(colorA[3], colorA[4], (i-steps*3/5)/(steps/5));
+    else                     c = lerpColor(colorA[4], bkgdColor, (i-steps*4/5)/(steps/5));
+    pGradH.stroke(c);
     pGradH.strokeWeight(2);
     pGradH.line(i*2, 0, i*2, pGradH.height);
   }
@@ -109,9 +103,9 @@ function pGradientH(){
 function pGradientV(){
   const steps = 256;
   pGradV = createGraphics(1024, 512);
-  for(let i = 0; i<steps; i++){
-    const gradientColor = lerpColor(colorA[0], colorA[4], i/steps);
-    pGradV.stroke(gradientColor);
+  for (let i = 0; i < steps; i++){
+    const c = lerpColor(colorA[0], colorA[4], i/steps);
+    pGradV.stroke(c);
     pGradV.strokeWeight(2);
     pGradV.line(0, i*2, pGradV.width, i*2);
   }
@@ -120,49 +114,62 @@ function pGradientV(){
 function pGradientCH(){
   const steps = 512;
   pGradCH = createGraphics(1024, 512);
-  for(let i = 0; i<steps; i++){
-    let gradientColor;
-    if(i<steps/2){
-      gradientColor = lerpColor(bkgdColor, colorA[1], i/(steps/2));
-    } else {
-      gradientColor = lerpColor(colorA[1], bkgdColor, (i - steps/2)/(steps/2));
-    }
-    pGradCH.stroke(gradientColor);
+  for (let i = 0; i < steps; i++){
+    const c = (i < steps/2)
+      ? lerpColor(bkgdColor, colorA[1], i/(steps/2))
+      : lerpColor(colorA[1], bkgdColor, (i-steps/2)/(steps/2));
+    pGradCH.stroke(c);
     pGradCH.strokeWeight(2);
     pGradCH.line(i*2, 0, i*2, pGradCH.height);
   }
 }
 
 //////////////////////////////////////////////
-// READABILITY RULES
+// INSERTS BETWEEN WORDS ONLY
 //////////////////////////////////////////////
 
-// Phrases to keep intact and text-only
-const PROTECTED_PHRASES = [
-  "STEVEN DEGROOTE",
-  "Graphic Designer",
-  "Marketing Strategy",
-  "Brand Development",
-  "User Interface"
-];
+// Insert X0..X8 tokens only into the gaps BETWEEN words.
+// Never replaces a word; avoids stacking multiple inserts in the same gap.
+function randomInsert(){
+  const N = keyArray.length;                      // number of words
+  const gaps = Array.from({ length: N + 1 }, (_, i) => i); // 0..N
+  const inserts = new Map();
 
-// Return a Set of token indexes (in keyArray) that belong to protected phrases
-function computeProtectedIndexes(tokens){
-  const idxSet = new Set();
-  const phrases = PROTECTED_PHRASES.map(s => s.trim().split(/\s+/));
-  for (const words of phrases){
-    if (!words.length) continue;
-    for (let i = 0; i <= tokens.length - words.length; i++){
-      let ok = true;
-      for (let j = 0; j < words.length; j++){
-        if (tokens[i+j] !== words[j]) { ok = false; break; }
-      }
-      if (ok){
-        for (let j = 0; j < words.length; j++) idxSet.add(i+j);
-      }
+  let pool = gaps.slice();                         // available gaps
+  const takeGap = () => {
+    if (!pool.length) return null;
+    const idx = floor(random(pool.length));
+    return pool.splice(idx, 1)[0];
+  };
+
+  const addTokens = (sym, count) => {
+    for (let r = 0; r < count; r++){
+      const g = takeGap();
+      if (g === null) break;
+      if (!inserts.has(g)) inserts.set(g, []);
+      inserts.get(g).push(sym);
     }
+  };
+
+  // counts similar to your previous scaling
+  addTokens("X0", 1 + floor(N / 5));    // images / GIF slots
+  addTokens("X1", 1 + floor(N / 12));   // slashes
+  addTokens("X2", 1 + floor(N / 12));   // circles
+  addTokens("X3", 1 + floor(N / 12));   // scribbles
+  addTokens("X4", 1 + floor(N / 18));   // blanks
+  addTokens("X5", 1 + floor(N / 10));   // clouds
+  addTokens("X6", 1 + floor(N / 15));   // zigzags
+  addTokens("X7", 1 + floor(N / 12));   // gradients
+  addTokens("X8",      floor(N / 15));  // boxes
+
+  // rebuild tokens: inserts before word i, then the word
+  const out = [];
+  for (let i = 0; i < N; i++){
+    if (inserts.has(i)) out.push(...inserts.get(i));
+    out.push(keyArray[i]);
   }
-  return idxSet;
+  if (inserts.has(N)) out.push(...inserts.get(N)); // after last word
+  keyArray = out;
 }
 
 //////////////////////////////////////////////
@@ -170,6 +177,7 @@ function computeProtectedIndexes(tokens){
 //////////////////////////////////////////////
 
 function setText() {
+  // reset state
   pgT = [];
   pEntry = [];
   heightRatio = [];
@@ -178,150 +186,100 @@ function setText() {
   sHarry = [];
   fullHeight = 0;
 
+  // input → words
   const enteredText = (document.getElementById("textArea")?.value || "").trim();
   keyText = enteredText;
   keyArray = enteredText ? enteredText.split(/\s+/) : [];
 
-  // Compute protected indices *before* we insert shapes
-  const protectedIdx = computeProtectedIndexes(keyArray);
+  // insert tokens between words
+  randomInsert();
 
-  // Insert shapes only AFTER the protected block (never inside)
-  randomInsert(protectedIdx);
+  let lineDist = 0;
+  let lineCount = 0;
+  let thisWordCount = 0;
 
-  let lineDist = 0, lineCount = 0, thisWordCount = 0;
+  // initial strip height
+  let sH = stripH;
+  let rSh = random(10);
+  if (rSh > 7.5) sH = stripH / 4;
+  else if (rSh > 5) sH = stripH / 2;
 
-  const wrapWidth = max(1, wWindow);
   const GIF_RATIO = 1.6;
-
-  // Protected text uses stable height; decorative items can vary
-  const sH_protected = stripH;
-  let sH_dynamic = stripH;
-
-  const pickDynamicH = () => {
-    const rSh = random(10);
-    if (rSh > 7.5) return stripH / 4;
-    if (rSh > 5)   return stripH / 2;
-    return stripH;
-  };
+  const wrapWidth = max(1, wWindow);
 
   for (let k = 0; k < keyArray.length; k++) {
+    // wrap line
     if (lineDist > wrapWidth) {
       xNudge[lineCount] = lineDist;
       wordCount[lineCount] = thisWordCount;
-      sHarry[lineCount] = sH_dynamic;
-      fullHeight += sH_dynamic;
+      sHarry[lineCount] = sH;
+      fullHeight += sH;
 
       lineCount++;
       lineDist = 0;
       thisWordCount = 0;
 
-      sH_dynamic = pickDynamicH();
+      rSh = random(10);
+      sH = stripH;
+      if (rSh > 7.5) sH = stripH / 4;
+      else if (rSh > 5) sH = stripH / 2;
     }
 
     const token = keyArray[k];
     let ver = 0;
 
-    // Protected words: always text, consistent height
-    if (protectedIdx.has(k)) {
-      pgTexture1(token, 0, k, sH_protected);
-      ver = 9;
-      thisWordCount++;
-      lineDist += (heightRatio[k] || sH_protected);
-      pEntry[k] = new Entry(k, ver, sH_protected);
-      continue;
-    }
-
-    // Non-protected
-    if (!sH_dynamic) sH_dynamic = pickDynamicH();
-
     if (token === "X0") {                 // GIF slot
       ver = 0;
-      heightRatio[k] = sH_dynamic * GIF_RATIO;
+      heightRatio[k] = sH * GIF_RATIO;
 
-    } else if (token === "X1") {          // SLASHES
-      pSlash(k, sH_dynamic);  ver = 1;
+    } else if (token === "X1") {          // slashes
+      pSlash(k, sH);  ver = 1;
 
-    } else if (token === "X2") {          // CIRCLES
-      pRound(k, sH_dynamic);  ver = 2;
+    } else if (token === "X2") {          // circles
+      pRound(k, sH);  ver = 2;
 
-    } else if (token === "X3") {          // SCRIBBLE
-      pBlank(k, sH_dynamic);  ver = 3;
+    } else if (token === "X3") {          // scribble
+      pBlank(k, sH);  ver = 3;
 
-    } else if (token === "X4") {          // BLANKS
-      pBlank(k, sH_dynamic);  ver = 4;
+    } else if (token === "X4") {          // blanks
+      pBlank(k, sH);  ver = 4;
 
-    } else if (token === "X5") {          // CLOUD
-      pBlank(k, sH_dynamic);  ver = 5;
+    } else if (token === "X5") {          // cloud
+      pBlank(k, sH);  ver = 5;
 
-    } else if (token === "X6") {          // ZIGZAG
-      pBlank(k, sH_dynamic);  ver = 6;
+    } else if (token === "X6") {          // zigzag
+      pBlank(k, sH);  ver = 6;
 
-    } else if (token === "X7") {          // GRADIENT
-      pBlank(k, sH_dynamic);  ver = 7;
+    } else if (token === "X7") {          // gradient
+      pBlank(k, sH);  ver = 7;
 
-    } else if (token === "X8") {          // BOXES
-      pBlank(k, sH_dynamic);  ver = 8;
+    } else if (token === "X8") {          // boxes
+      pBlank(k, sH);  ver = 8;
 
-    } else {                              // regular text
+    } else {                              // word → always text
       const rFont = random(10);
-      pgTexture1(token, rFont < 8 ? 0 : typeToggle, k, sH_dynamic);
+      pgTexture1(token, rFont < 8 ? 0 : typeToggle, k, sH);
       ver = 9;
     }
 
     thisWordCount++;
-    lineDist += (heightRatio[k] || sH_dynamic);
-    pEntry[k] = new Entry(k, ver, sH_dynamic);
+    lineDist += (heightRatio[k] || sH);
+    pEntry[k] = new Entry(k, ver, sH);
   }
 
+  // flush last line
   xNudge[lineCount] = lineDist;
   wordCount[lineCount] = thisWordCount;
-  sHarry[lineCount] = sH_dynamic;
-  fullHeight += sH_dynamic;
+  sHarry[lineCount] = sH;
+  fullHeight += sH;
 }
 
-// --- utilities & helpers ---
-
-function reRoll(){
-  typeToggle = round(random(1, 2));
-  setText();
-}
+// --- HELPERS ---
+function reRoll(){ typeToggle = round(random(1, 2)); setText(); }
 
 function aSet(ticker, influ){
-  const capTicker = ticker % 1;
-  return pow(capTicker, influ) / (pow(capTicker, influ) + pow(1 - capTicker, influ));
-}
-
-/**
- * Insert shape tokens only AFTER the protected block.
- * @param {Set<number>} protectedIdx indexes of tokens that are protected
- */
-function randomInsert(protectedIdx = new Set()){
-  // find the last index in the protected block
-  let lastProtected = -1;
-  for (const i of protectedIdx) if (i > lastProtected) lastProtected = i;
-
-  // choose insertion index >= lastProtected + 1
-  const chooseInsert = () => {
-    const start = Math.max(0, lastProtected + 1);
-    const end = Math.max(start, keyArray.length);
-    return start + round(random(end - start));
-  };
-
-  const add = (sym, n) => {
-    for (let r = 0; r < n; r++) {
-      keyArray.splice(chooseInsert(), 0, sym);
-    }
-  };
-
-  add("X0", 1 + floor(keyArray.length / 5));   // images
-  add("X1", 1 + floor(keyArray.length / 12));  // slashes
-  add("X2", 1 + floor(keyArray.length / 12));  // circles
-  add("X3", 1 + floor(keyArray.length / 12));  // scribbles
-  add("X4", 1 + floor(keyArray.length / 18));  // blanks
-  add("X5", 1 + floor(keyArray.length / 10));  // clouds
-  add("X6", 1 + floor(keyArray.length / 15));  // zigzags
-  add("X7", 1 + floor(keyArray.length / 12));  // gradients
-  add("X8",      floor(keyArray.length / 15)); // boxes
+  const t = ticker % 1;
+  return pow(t, influ) / (pow(t, influ) + pow(1 - t, influ));
 }
 
 function hideWidget(){
