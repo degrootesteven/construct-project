@@ -1,19 +1,64 @@
 //////////////////////////////////////////////
-// update.js (textures merged)
+// update.js (textures merged) + FONT SUPPORT
 //////////////////////////////////////////////
 
-// --- TEXTURES ---
+// ------------ FONTS ------------
+let tFont = window.tFont || [];
+let typeToggle = window.typeToggle || 0;
+if (typeof window.pgTextSize === 'undefined') window.pgTextSize = 48;
+
+// Update these paths to match your repo structure
+const FONT_PATHS = [
+  'resources/fonts/Inter-Regular.ttf',            // 0 Sans
+  'resources/fonts/PlayfairDisplay-Regular.ttf',  // 1 Serif
+  'resources/fonts/SpaceMono-Regular.ttf',        // 2 Mono
+  'resources/fonts/BebasNeue-Regular.ttf'         // 3 Display
+];
+
+let _fontLoading = false;
+function loadFonts(cb){
+  if (_fontLoading) return;
+  _fontLoading = true;
+  const temp = new Array(FONT_PATHS.length);
+  let remaining = FONT_PATHS.length;
+  FONT_PATHS.forEach((url, i)=>{
+    loadFont(
+      url,
+      f => { temp[i]=f; if(--remaining===0){ tFont=temp; _fontLoading=false; cb&&cb(); } },
+      err => { console.warn('Font failed:', url, err); temp[i]=temp[i]||tFont[0]; if(--remaining===0){ tFont=temp; _fontLoading=false; cb&&cb(); } }
+    );
+  });
+}
+function ensureFontsLoaded(){
+  if (!Array.isArray(tFont) || tFont.length !== FONT_PATHS.length || !tFont[0]) {
+    loadFonts(()=> setText()); // rebuild once fonts arrive
+  }
+}
+function setFontMode(i){
+  typeToggle = constrain(int(i), 0, max(0, (tFont?.length||1)-1));
+  setText();
+}
+function cycleFont(){
+  const n = (tFont?.length || 1);
+  typeToggle = (typeToggle + 1) % n;
+  setText();
+}
+window.setFontMode = setFontMode;
+window.cycleFont  = cycleFont;
+
+// ------------ TEXTURES ------------
 function pgTexture1(inp, typeP, p, sH){
+  const face = (tFont && tFont[typeP]) || (tFont && tFont[0]) || null;
+  if (face) textFont(face);
   textSize(pgTextSize);
-  textFont(tFont[typeP]);
   const repeatSize = round(textWidth(inp + " "));
 
   pgT[p] = createGraphics(repeatSize, pgTextSize * 1.0);
   pgT[p].fill(foreColor);
   pgT[p].noStroke();
+  if (face) pgT[p].textFont(face);
   pgT[p].textSize(pgTextSize);
   pgT[p].textAlign(CENTER);
-  pgT[p].textFont(tFont[typeP]);
   pgT[p].text(inp, pgT[p].width/2, pgT[p].height/2 + pgTextSize*0.7/2);
 
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
@@ -83,7 +128,7 @@ function pBlank(p, sH){
   heightRatio[p] = pgT[p].width * sH / pgT[p].height;
 }
 
-// --- GRADIENTS ---
+// ------------ GRADIENTS ------------
 function pGradientH(){
   const steps = 512;
   pGradH = createGraphics(1024, 512);
@@ -99,7 +144,6 @@ function pGradientH(){
     pGradH.line(i*2, 0, i*2, pGradH.height);
   }
 }
-
 function pGradientV(){
   const steps = 256;
   pGradV = createGraphics(1024, 512);
@@ -110,7 +154,6 @@ function pGradientV(){
     pGradV.line(0, i*2, pGradV.width, i*2);
   }
 }
-
 function pGradientCH(){
   const steps = 512;
   pGradCH = createGraphics(1024, 512);
@@ -124,24 +167,18 @@ function pGradientCH(){
   }
 }
 
-//////////////////////////////////////////////
-// INSERTS BETWEEN WORDS ONLY
-//////////////////////////////////////////////
-
-// Insert X0..X8 tokens only into the gaps BETWEEN words.
-// Never replaces a word; avoids stacking multiple inserts in the same gap.
+// ------------ INSERTS BETWEEN WORDS ------------
 function randomInsert(){
-  const N = keyArray.length;                      // number of words
+  const N = keyArray.length;                      // words
   const gaps = Array.from({ length: N + 1 }, (_, i) => i); // 0..N
   const inserts = new Map();
 
-  let pool = gaps.slice();                         // available gaps
+  let pool = gaps.slice();
   const takeGap = () => {
     if (!pool.length) return null;
     const idx = floor(random(pool.length));
     return pool.splice(idx, 1)[0];
   };
-
   const addTokens = (sym, count) => {
     for (let r = 0; r < count; r++){
       const g = takeGap();
@@ -151,8 +188,7 @@ function randomInsert(){
     }
   };
 
-  // counts similar to your previous scaling
-  addTokens("X0", 1 + floor(N / 5));    // images / GIF slots
+  addTokens("X0", 1 + floor(N / 5));    // GIF slots
   addTokens("X1", 1 + floor(N / 12));   // slashes
   addTokens("X2", 1 + floor(N / 12));   // circles
   addTokens("X3", 1 + floor(N / 12));   // scribbles
@@ -162,21 +198,19 @@ function randomInsert(){
   addTokens("X7", 1 + floor(N / 12));   // gradients
   addTokens("X8",      floor(N / 15));  // boxes
 
-  // rebuild tokens: inserts before word i, then the word
   const out = [];
   for (let i = 0; i < N; i++){
-    if (inserts.has(i)) out.push(...inserts.get(i));
+    if (inserts.has(i)) out.push(...inserts.get(i)); // before word i
     out.push(keyArray[i]);
   }
-  if (inserts.has(N)) out.push(...inserts.get(N)); // after last word
+  if (inserts.has(N)) out.push(...inserts.get(N));   // after last word
   keyArray = out;
 }
 
-//////////////////////////////////////////////
-// LAYOUT + LOGIC
-//////////////////////////////////////////////
-
+// ------------ LAYOUT + LOGIC ------------
 function setText() {
+  ensureFontsLoaded(); // will re-run once fonts are ready
+
   // reset state
   pgT = [];
   pEntry = [];
@@ -194,9 +228,7 @@ function setText() {
   // insert tokens between words
   randomInsert();
 
-  let lineDist = 0;
-  let lineCount = 0;
-  let thisWordCount = 0;
+  let lineDist = 0, lineCount = 0, thisWordCount = 0;
 
   // initial strip height
   let sH = stripH;
@@ -208,7 +240,6 @@ function setText() {
   const wrapWidth = max(1, wWindow);
 
   for (let k = 0; k < keyArray.length; k++) {
-    // wrap line
     if (lineDist > wrapWidth) {
       xNudge[lineCount] = lineDist;
       wordCount[lineCount] = thisWordCount;
@@ -229,34 +260,17 @@ function setText() {
     let ver = 0;
 
     if (token === "X0") {                 // GIF slot
-      ver = 0;
-      heightRatio[k] = sH * GIF_RATIO;
+      ver = 0; heightRatio[k] = sH * GIF_RATIO;
 
-    } else if (token === "X1") {          // slashes
-      pSlash(k, sH);  ver = 1;
-
-    } else if (token === "X2") {          // circles
-      pRound(k, sH);  ver = 2;
-
-    } else if (token === "X3") {          // scribble
-      pBlank(k, sH);  ver = 3;
-
-    } else if (token === "X4") {          // blanks
-      pBlank(k, sH);  ver = 4;
-
-    } else if (token === "X5") {          // cloud
-      pBlank(k, sH);  ver = 5;
-
-    } else if (token === "X6") {          // zigzag
-      pBlank(k, sH);  ver = 6;
-
-    } else if (token === "X7") {          // gradient
-      pBlank(k, sH);  ver = 7;
-
-    } else if (token === "X8") {          // boxes
-      pBlank(k, sH);  ver = 8;
-
-    } else {                              // word → always text
+    } else if (token === "X1") { pSlash(k, sH);  ver = 1; }
+    else if (token === "X2")   { pRound(k, sH);  ver = 2; }
+    else if (token === "X3")   { pBlank(k, sH);  ver = 3; }
+    else if (token === "X4")   { pBlank(k, sH);  ver = 4; }
+    else if (token === "X5")   { pBlank(k, sH);  ver = 5; }
+    else if (token === "X6")   { pBlank(k, sH);  ver = 6; }
+    else if (token === "X7")   { pBlank(k, sH);  ver = 7; }
+    else if (token === "X8")   { pBlank(k, sH);  ver = 8; }
+    else {
       const rFont = random(10);
       pgTexture1(token, rFont < 8 ? 0 : typeToggle, k, sH);
       ver = 9;
@@ -274,45 +288,28 @@ function setText() {
   fullHeight += sH;
 }
 
-// --- HELPERS ---
+// ------------ HELPERS ------------
 function reRoll(){ typeToggle = round(random(1, 2)); setText(); }
-
 function aSet(ticker, influ){
   const t = ticker % 1;
   return pow(t, influ) / (pow(t, influ) + pow(1 - t, influ));
 }
-
 function hideWidget(){
   widgetOn = !widgetOn;
   document.getElementById('widget').style.display = widgetOn ? "block" : "none";
 }
-
 function invert(){
   inverter = !inverter;
-  if (inverter) {
-    bkgdColor = color('#ffffff');
-    foreColor = color('#000000');
-  } else {
-    bkgdColor = color('#000000');
-    foreColor = color('#ffffff');
-  }
+  if (inverter) { bkgdColor = color('#ffffff'); foreColor = color('#000000'); }
+  else          { bkgdColor = color('#000000'); foreColor = color('#ffffff'); }
   colorA[4] = bkgdColor;
   if (typeof pGradientH === 'function') pGradientH();
   if (typeof pGradientV === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
   setText();
 }
-
-function setWpadding(val){
-  wPad = val;
-  wWindow = width - map(wPad, 0, 100, 0, width);
-  setText();
-}
-
-function setStripH(val){
-  stripH = round(val);
-  setText();
-}
+function setWpadding(val){ wPad = val; wWindow = width - map(wPad, 0, 100, 0, width); setText(); }
+function setStripH(val){ stripH = round(val); setText(); }
 
 // Expose globally
 window.setText = setText;
