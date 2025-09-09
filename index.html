@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Construct Project</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=5" />
   <style>
     html, body { height: 100%; margin: 0; background:#000; }
     canvas { display:block; }
@@ -21,38 +21,36 @@
 </head>
 <body>
   <!-- Text input -->
-  <textarea id="textArea" rows="2">STEVEN DEGROOTE Graphic Design Marketing Strategy Brand Development Creative Direction User Interface</textarea>
+  <textarea id="textArea" rows="2">
+STEVEN DEGROOTE Graphic Design Marketing Strategy Brand Development Creative Direction User Interface
+  </textarea>
 
   <!-- p5 will mount its canvas into this container -->
   <div id="construct-container"></div>
 
-  <!-- Libraries -->
+  <!-- Load p5 library ONCE -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
   <!-- Your project files (order matters) -->
-<script src="p5.min.js"></script>
-<script src="textures.js?v=3"></script>
-<script src="entry.js?v=3"></script>
-<script src="g_cloud.js?v=3"></script>
-<script src="g_scribble.js?v=3"></script>
-<script src="g_zigzag.js?v=3"></script>
-<script src="g_gradient.js?v=3"></script>
-<script src="g_box.js?v=3"></script>
-<script src="update.js?v=4"></script>   <!-- setText, randomInsert, invert, etc. -->
-<script src="italicWave.js?v=3"></script>
-<script src="sketch.js?v=3"></script>   <!-- setup() calls setText() -->
-
-
+  <script src="textures.js?v=5"></script>
+  <script src="entry.js?v=5"></script>
+  <script src="g_cloud.js?v=5"></script>
+  <script src="g_scribble.js?v=5"></script>
+  <script src="g_zigzag.js?v=5"></script>
+  <script src="g_gradient.js?v=5"></script>
+  <script src="g_box.js?v=5"></script>
+  <script src="update.js?v=5"></script>   <!-- setText, randomInsert, invert, etc. -->
+  <script src="italicWave.js?v=5"></script>
+  <script src="sketch.js?v=5"></script>   <!-- setup() calls setText() -->
 
   <!-- Optional: live-update text -->
   <script>
     const ta = document.getElementById('textArea');
-    if (ta) ta.addEventListener('input', () => { if (typeof setText === 'function') setText(); });
+    if (ta) {
+      ta.addEventListener('input', () => {
+        if (typeof setText === 'function') setText();
+      });
+    }
   </script>
 </body>
 </html>
-
-
-
-
-
