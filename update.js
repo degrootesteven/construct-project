@@ -205,7 +205,8 @@ function setText() {
   fullHeight += sH;
 }
 
-// --- HELPERS ---
+// --- utilities & helpers ---
+
 function reRoll(){
   typeToggle = round(random(1, 2));
   setText();
@@ -269,11 +270,9 @@ function invert(){
     foreColor = color('#ffffff');
   }
   colorA[4] = bkgdColor;
-
   if (typeof pGradientH === 'function') pGradientH();
   if (typeof pGradientV === 'function') pGradientV();
   if (typeof pGradientCH === 'function') pGradientCH();
-
   setText();
 }
 
