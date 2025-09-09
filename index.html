@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Construct Project</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- (Optional) Preload local fonts used by sketch.js -->
+  <link rel="preload" href="resources/fonts/Inter-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="resources/fonts/PlayfairDisplay-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="resources/fonts/SpaceMono-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="resources/fonts/BebasNeue-Regular.ttf" as="font" type="font/ttf" crossorigin>
+
   <style>
-    html, body { height: 100%; margin: 0; background:#000; }
+    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
     canvas { display:block; }
     #construct-container {
       position: fixed; inset: 0;
@@ -21,43 +28,34 @@
 </head>
 <body>
   <!-- Text input -->
-  <textarea id="textArea" rows="2">
-    STEVEN DEGROOTE Graphic Design Marketing Strategy Brand Development Creative Direction User Interface
-  </textarea>
+  <textarea id="textArea" rows="2">STEVEN DEGROOTE Graphic Design Marketing Strategy Brand Development Creative Direction User Interface</textarea>
 
   <!-- p5 will mount its canvas here -->
   <div id="construct-container"></div>
 
-  <!-- Libraries -->
+  <!-- Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
   <!-- Project files (textures merged into update.js) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="entry.js?v=10" defer></script>
+  <script src="g_cloud.js?v=10" defer></script>
+  <script src="g_scribble.js?v=10" defer></script>
+  <script src="g_zigzag.js?v=10" defer></script>
+  <script src="g_gradient.js?v=10" defer></script>
+  <script src="g_box.js?v=10" defer></script>
 
-<script src="entry.js?v=10"></script>
-<script src="g_cloud.js?v=10"></script>
-<script src="g_scribble.js?v=10"></script>
-<script src="g_zigzag.js?v=10"></script>
-<script src="g_gradient.js?v=10"></script>
-<script src="g_box.js?v=10"></script>
+  <!-- merged file: includes textures + randomInsert + setText -->
+  <script src="update.js?v=10" defer></script>
 
-<!-- merged file: includes textures + randomInsert + setText -->
-<script src="update.js?v=10"></script>
-
-<script src="italicWave.js?v=10"></script>
-<script src="sketch.js?v=10"></script> <!-- setup() calls setText() -->
-
-
+  <script src="italicWave.js?v=10" defer></script>
+  <script src="sketch.js?v=10" defer></script> <!-- setup() calls setText() -->
 
   <!-- Optional: live-update text -->
   <script>
     const ta = document.getElementById('textArea');
-    if (ta) ta.addEventListener('input', () => { 
+    if (ta) ta.addEventListener('input', () => {
       if (typeof window.setText === 'function') window.setText();
     });
   </script>
 </body>
 </html>
-
-
-
