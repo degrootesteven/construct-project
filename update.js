@@ -18,7 +18,7 @@ function setText() {
   keyArray = enteredText ? enteredText.split(/\s+/) : [];
 
   // Inject special tokens (X0..X8)
-  randomInsert();
+  if (typeof randomInsert === "function") randomInsert();
 
   let lineDist = 0;
   let lineCount = 0;
@@ -215,3 +215,13 @@ function setStripH(val){
   stripH = round(val);
   setText();
 }
+
+// Expose to global (avoids scope issues if scripts load as modules or re-ordered)
+window.setText = setText;
+window.reRoll = reRoll;
+window.aSet = aSet;
+window.randomInsert = randomInsert;
+window.hideWidget = hideWidget;
+window.invert = invert;
+window.setWpadding = setWpadding;
+window.setStripH = setStripH;
