@@ -6,7 +6,7 @@ let pEntry = [];            // Entry objects
 let heightRatio = [];       // width/height ratios
 let sHarry = [];            // per-line heights
 
-let tFont = [];             // p5.Font objects (loaded in preload)
+let tFont = [];             // p5.Font objects (loaded in preload)  <-- NOTE: tFont (not "font")
 let pImg = [];              // images/GIFs
 
 let pGradV, pGradH, pGradCH; // gradient graphics
@@ -21,40 +21,38 @@ let wordCount = [];         // words per line
 
 let stripH = 70;            // band height
 let wWindow = 0;            // working window width
-let wPad = 40;              // padding
+let wPad = 60;              // padding (narrower text column)
 let fullHeight = 0;         // computed total layout height
 
 let colorA = [];            // palette
 
 let widgetOn = true;
 let inverter = false;
-let typeToggle = 1;         // which font in tFont[]
 
-// --- layout & density controls ---
+// which font family index update.js will use via textFont(tFont[typeP])
+let typeToggle = 0;         // 0=Inter, 1=Playfair, 2=SpaceMono, 3=BebasNeue
+
+// --- layout & density controls (consumed by update.js) ---
 let LINE_PAD      = 18;   // extra pixels between lines (vertical)
 let WORD_PAD      = 8;    // extra pixels between tokens (horizontal)
 let SHAPE_DENSITY = 0.6;  // 0..1, lower = fewer shapes
 let SHAPE_SCALE   = 0.85; // 0..1, shrink shapes inside their strip
 
-// Optional: reduce working width to force nicer wrapping (more lines)
-wPad = 60; // try 40–120; higher = narrower text column (more line breaks)
-
 
 // ---------- preload: load local fonts + GIFs ----------
 function preload() {
-  // Put these files in resources/fonts/ (same origin as index.html)
-  // Inter, Playfair Display, Space Mono, Bebas Neue
-  tFont[0] = loadFont('resources/fonts/Inter-Regular.ttf');            // Sans
-  tFont[1] = loadFont('resources/fonts/PlayfairDisplay-Regular.ttf');  // Serif
-  tFont[2] = loadFont('resources/fonts/SpaceMono-Regular.ttf');        // Mono
-  tFont[3] = loadFont('resources/fonts/BebasNeue-Regular.ttf');        // Display
+  // Local fonts (make sure these files exist with exact names/paths)
+  tFont[0] = loadFont('resources/fonts/Inter-Regular.ttf');             // Sans
+  tFont[1] = loadFont('resources/fonts/PlayfairDisplay-Regular.ttf');   // Serif
+  tFont[2] = loadFont('resources/fonts/SpaceMono-Regular.ttf');         // Mono
+  tFont[3] = loadFont('resources/fonts/BebasNeue-Regular.ttf');         // Display
 
   // Load GIFs 0..10 from construct/resources/gifs/
   pImg = [];
   for (let i = 0; i <= 10; i++) {
     pImg[i] = loadImage(
       'construct/resources/gifs/' + i + '.gif',
-      () => {}, // success
+      () => console.log('Loaded GIF', i),
       () => console.warn('Failed to load GIF', i)
     );
   }
@@ -115,16 +113,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ---------- simple font controls from console/UI ----------
+// ---------- simple font controls ----------
 function setFontMode(i){
-  // clamp to available fonts
-  typeToggle = constrain(int(i), 0, max(0, (tFont?.length || 1) - 1));
+  const maxIdx = (tFont && tFont.length) ? tFont.length - 1 : 0;
+  typeToggle = constrain(int(i), 0, maxIdx);
   if (typeof setText === 'function') setText();
 }
 function cycleFont(){
-  const n = (tFont?.length || 1);
+  const n = (tFont && tFont.length) ? tFont.length : 1;
   typeToggle = (typeToggle + 1) % n;
   if (typeof setText === 'function') setText();
+}
+function keyPressed(){
+  if (key === '1') setFontMode(0); // Inter
+  if (key === '2') setFontMode(1); // Playfair Display
+  if (key === '3') setFontMode(2); // Space Mono
+  if (key === '4') setFontMode(3); // Bebas Neue
 }
 window.setFontMode = setFontMode;
 window.cycleFont  = cycleFont;
