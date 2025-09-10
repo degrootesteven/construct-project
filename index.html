@@ -1,118 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Construct Project</title>
-  <link rel="stylesheet" href="style.css" />
+<!-- Custom cursor inside the iframe/page (auto-hide when leaving the iframe) -->
+<script>
+(function () {
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isTouch || prefersReduced) return; // keep default cursor
 
-  <!-- Preload local fonts -->
-  <link rel="preload" href="resources/fonts/Inter-Regular.ttf"           as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="resources/fonts/PlayfairDisplay-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="resources/fonts/SpaceMono-Regular.ttf"       as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="resources/fonts/BebasNeue-Regular.ttf"       as="font" type="font/ttf" crossorigin>
+  // Build + style
+  document.documentElement.classList.add('dg-hide-cursor');
+  document.body.classList.add('dg-hide-cursor');
 
-  <style>
-    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
-    canvas { display:block; }
-    #construct-container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+  const root = document.createElement('div');
+  root.className = 'dg-cursor';
+  root.style.opacity = '1'; // visible by default while inside iframe
+  root.innerHTML = `
+    <div class="dg-cb dg-cb--big" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 30 30" focusable="false"><circle cx="15" cy="15" r="12"/></svg>
+    </div>
+    <div class="dg-cb dg-cb--small" aria-hidden="true">
+      <svg width="10" height="10" viewBox="0 0 10 10" focusable="false"><circle cx="5" cy="5" r="4"/></svg>
+    </div>`;
+  document.body.appendChild(root);
 
-    /* Custom cursor base styles */
-    .dg-cursor, .dg-cursor * { pointer-events: none; }
-    .dg-cursor { position: fixed; inset: 0; z-index: 2147483647; }
-    .dg-cb { position: fixed; top: 0; left: 0; mix-blend-mode: difference; will-change: transform; }
-    .dg-cb circle { fill: #f7f8fa; }
-    /* Hide native cursor when enabled */
-    html.dg-hide-cursor, body.dg-hide-cursor { cursor: none; }
-  </style>
+  const big = root.querySelector('.dg-cb--big');
+  const small = root.querySelector('.dg-cb--small');
 
-  <!-- Fixed text (no UI to edit) -->
-  <script>
-    window.DEFAULT_TEXT =
-      "STEVEN DEGROOTE " +
-      "Graphic Designer " +
-      "Marketing Strategy " +
-      "Brand Development " +
-      "User Interface";
-  </script>
-</head>
-<body>
-  <!-- p5 mounts here -->
-  <div id="construct-container"></div>
+  // Show/hide helpers (toggle native cursor too)
+  let visible = true;
+  function showCursor() {
+    if (visible) return;
+    visible = true;
+    root.style.opacity = '1';
+    document.documentElement.classList.add('dg-hide-cursor');
+    document.body.classList.add('dg-hide-cursor');
+  }
+  function hideCursor() {
+    if (!visible) return;
+    visible = false;
+    root.style.opacity = '0';
+    document.documentElement.classList.remove('dg-hide-cursor');
+    document.body.classList.remove('dg-hide-cursor');
+  }
 
-  <!-- p5 (only once) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  // Motion
+  let x = innerWidth/2, y = innerHeight/2, bx = x, by = y, sx = x, sy = y;
+  let bigScale = 1, targetScale = 1;
+  (function raf(){
+    bx += (x - bx) * 0.15;  by += (y - by) * 0.15;
+    sx += (x - sx) * 0.35;  sy += (y - sy) * 0.35;
+    bigScale += (targetScale - bigScale) * 0.2;
+    big.style.transform   = `translate(${bx - 15}px, ${by - 15}px) scale(${bigScale})`;
+    small.style.transform = `translate(${sx - 5}px,  ${sy - 5}px)`;
+    requestAnimationFrame(raf);
+  })();
 
-  <!-- Project files (order matters) -->
-  <script src="entry.js?v=12"></script>
-  <script src="g_cloud.js?v=12"></script>
-  <script src="g_scribble.js?v=12"></script>
-  <script src="g_zigzag.js?v=12"></script>
-  <script src="g_gradient.js?v=12"></script>
-  <script src="g_box.js?v=12"></script>
-  <script src="update.js?v=12"></script>
-  <script src="italicWave.js?v=12"></script>
-  <script src="sketch.js?v=12"></script>
+  // Track pointer; ensure visible when moving inside the iframe
+  window.addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; showCursor(); }, { passive: true });
 
-  <!-- Custom cursor -->
-  <script>
-    (function () {
-      // Allow forcing the cursor via ?cursor=force
-      const force = /(?:[?&])cursor=force\b/i.test(location.search);
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Enlarge on interactive things inside this page
+  function bindHovers(rootEl = document){
+    rootEl.querySelectorAll('a, button, [role="button"], .sqs-block-button a').forEach(el => {
+      el.addEventListener('pointerenter', () => { targetScale = 2; }, { passive: true });
+      el.addEventListener('pointerleave', () => { targetScale = 1; }, { passive: true });
+    });
+  }
+  bindHovers();
 
-      if (!force && (isTouch || prefersReduced)) return;
+  // --- KEY PART: hide when the pointer leaves the iframe, show when re-enters ---
+  document.addEventListener('pointerleave', hideCursor, { passive: true });
+  document.addEventListener('mouseleave',  hideCursor, { passive: true });
+  // Some browsers fire only mouseout with null relatedTarget when exiting the iframe:
+  document.addEventListener('mouseout', e => { if (!e.relatedTarget) hideCursor(); }, { passive: true });
+  // When the pointer re-enters anywhere inside the iframe, show again:
+  document.addEventListener('pointerenter', showCursor, { passive: true });
+  document.addEventListener('mouseenter',  showCursor, { passive: true });
 
-      document.documentElement.classList.add('dg-hide-cursor');
-      document.body.classList.add('dg-hide-cursor');
+  // Also hide if the iframe/page loses focus (e.g., user alt-tabs or scrolls past)
+  window.addEventListener('blur', hideCursor);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { targetScale = 1; bigScale = 1; hideCursor(); } });
 
-      const cursor = document.createElement('div');
-      cursor.className = 'dg-cursor';
-      cursor.innerHTML = `
-        <div class="dg-cb dg-cb--big" aria-hidden="true">
-          <svg width="30" height="30" viewBox="0 0 30 30" focusable="false">
-            <circle cx="15" cy="15" r="12" />
-          </svg>
-        </div>
-        <div class="dg-cb dg-cb--small" aria-hidden="true">
-          <svg width="10" height="10" viewBox="0 0 10 10" focusable="false">
-            <circle cx="5" cy="5" r="4" />
-          </svg>
-        </div>`;
-      document.body.appendChild(cursor);
-
-      const big = cursor.querySelector('.dg-cb--big');
-      const small = cursor.querySelector('.dg-cb--small');
-
-      let x = innerWidth / 2,  y = innerHeight / 2;
-      let bx = x, by = y, sx = x, sy = y;
-      let bigScale = 1, targetScale = 1;
-
-      function tick(){
-        bx += (x - bx) * 0.15;  by += (y - by) * 0.15;
-        sx += (x - sx) * 0.35;  sy += (y - sy) * 0.35;
-        bigScale += (targetScale - bigScale) * 0.2;
-
-        big.style.transform   = `translate(${bx - 15}px, ${by - 15}px) scale(${bigScale})`;
-        small.style.transform = `translate(${sx - 5}px,  ${sy - 5}px)`;
-        requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-
-      window.addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; }, { passive: true });
-
-      function bindHovers(root = document){
-        root.querySelectorAll('a, button, [role="button"], .sqs-block-button a').forEach(el => {
-          el.addEventListener('pointerenter', () => targetScale = 2);
-          el.addEventListener('pointerleave', () => targetScale = 1);
-        });
-      }
-      bindHovers();
-
-      const mo = new MutationObserver(() => bindHovers());
-      mo.observe(document.body, { childList: true, subtree: true });
-    })();
-  </script>
-</body>
-</html>
+  // Rebind on dynamic content (optional)
+  new MutationObserver(() => bindHovers(document)).observe(document.body, { childList: true, subtree: true });
+})();
+</script>
