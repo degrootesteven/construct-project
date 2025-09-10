@@ -17,12 +17,12 @@
     canvas { display:block; }
     #construct-container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 
-    /* Custom cursor */
+    /* Custom cursor base styles */
     .dg-cursor, .dg-cursor * { pointer-events: none; }
     .dg-cursor { position: fixed; inset: 0; z-index: 2147483647; }
     .dg-cb { position: fixed; top: 0; left: 0; mix-blend-mode: difference; will-change: transform; }
     .dg-cb circle { fill: #f7f8fa; }
-    /* Hide native cursor (desktop only; JS disables on touch and prefers-reduced-motion) */
+    /* Hide native cursor when enabled */
     html.dg-hide-cursor, body.dg-hide-cursor { cursor: none; }
   </style>
 
@@ -54,18 +54,19 @@
   <script src="italicWave.js?v=12"></script>
   <script src="sketch.js?v=12"></script>
 
-  <!-- Custom cursor inside the iframe/page -->
+  <!-- Custom cursor -->
   <script>
     (function () {
+      // Allow forcing the cursor via ?cursor=force
+      const force = /(?:[?&])cursor=force\b/i.test(location.search);
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (isTouch || prefersReduced) return; // keep default cursor
 
-      // Hide native cursor on this page only
+      if (!force && (isTouch || prefersReduced)) return;
+
       document.documentElement.classList.add('dg-hide-cursor');
       document.body.classList.add('dg-hide-cursor');
 
-      // Build cursor DOM
       const cursor = document.createElement('div');
       cursor.className = 'dg-cursor';
       cursor.innerHTML = `
@@ -84,12 +85,11 @@
       const big = cursor.querySelector('.dg-cb--big');
       const small = cursor.querySelector('.dg-cb--small');
 
-      let x = window.innerWidth / 2,  y = window.innerHeight / 2;
+      let x = innerWidth / 2,  y = innerHeight / 2;
       let bx = x, by = y, sx = x, sy = y;
       let bigScale = 1, targetScale = 1;
 
-      // Follow with easing
-      function tick() {
+      function tick(){
         bx += (x - bx) * 0.15;  by += (y - by) * 0.15;
         sx += (x - sx) * 0.35;  sy += (y - sy) * 0.35;
         bigScale += (targetScale - bigScale) * 0.2;
@@ -100,20 +100,16 @@
       }
       requestAnimationFrame(tick);
 
-      // Track pointer
       window.addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; }, { passive: true });
 
-      // Enlarge over interactive elements inside this page
-      function bindHovers(root = document) {
-        const targets = root.querySelectorAll('a, button, [role="button"], .sqs-block-button a');
-        targets.forEach(el => {
+      function bindHovers(root = document){
+        root.querySelectorAll('a, button, [role="button"], .sqs-block-button a').forEach(el => {
           el.addEventListener('pointerenter', () => targetScale = 2);
           el.addEventListener('pointerleave', () => targetScale = 1);
         });
       }
       bindHovers();
 
-      // If your sketch dynamically injects content, re-bind periodically or on mutations if needed
       const mo = new MutationObserver(() => bindHovers());
       mo.observe(document.body, { childList: true, subtree: true });
     })();
