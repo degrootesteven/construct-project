@@ -6,16 +6,24 @@
   <title>Construct Project</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Preload local fonts (paths match sketch.js) -->
+  <!-- Preload local fonts -->
   <link rel="preload" href="resources/fonts/Inter-Regular.ttf"           as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="resources/fonts/PlayfairDisplay-Regular.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="resources/fonts/SpaceMono-Regular.ttf"       as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="resources/fonts/BebasNeue-Regular.ttf"       as="font" type="font/ttf" crossorigin>
 
   <style>
-    html, body { height: 100%; margin: 0; background:#000; overflow: hidden; }
-    canvas { display: block; }
+    html, body { height: 100%; margin: 0; background:#000; overflow:hidden; }
+    canvas { display:block; }
     #construct-container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+
+    /* Custom cursor */
+    .dg-cursor, .dg-cursor * { pointer-events: none; }
+    .dg-cursor { position: fixed; inset: 0; z-index: 2147483647; }
+    .dg-cb { position: fixed; top: 0; left: 0; mix-blend-mode: difference; will-change: transform; }
+    .dg-cb circle { fill: #f7f8fa; }
+    /* Hide native cursor (desktop only; JS disables on touch and prefers-reduced-motion) */
+    html.dg-hide-cursor, body.dg-hide-cursor { cursor: none; }
   </style>
 
   <!-- Fixed text (no UI to edit) -->
@@ -35,7 +43,7 @@
   <!-- p5 (only once) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
 
-  <!-- Project files (order matters; bump ?v when deploying to bust cache) -->
+  <!-- Project files (order matters) -->
   <script src="entry.js?v=12"></script>
   <script src="g_cloud.js?v=12"></script>
   <script src="g_scribble.js?v=12"></script>
@@ -45,5 +53,70 @@
   <script src="update.js?v=12"></script>
   <script src="italicWave.js?v=12"></script>
   <script src="sketch.js?v=12"></script>
+
+  <!-- Custom cursor inside the iframe/page -->
+  <script>
+    (function () {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (isTouch || prefersReduced) return; // keep default cursor
+
+      // Hide native cursor on this page only
+      document.documentElement.classList.add('dg-hide-cursor');
+      document.body.classList.add('dg-hide-cursor');
+
+      // Build cursor DOM
+      const cursor = document.createElement('div');
+      cursor.className = 'dg-cursor';
+      cursor.innerHTML = `
+        <div class="dg-cb dg-cb--big" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 30 30" focusable="false">
+            <circle cx="15" cy="15" r="12" />
+          </svg>
+        </div>
+        <div class="dg-cb dg-cb--small" aria-hidden="true">
+          <svg width="10" height="10" viewBox="0 0 10 10" focusable="false">
+            <circle cx="5" cy="5" r="4" />
+          </svg>
+        </div>`;
+      document.body.appendChild(cursor);
+
+      const big = cursor.querySelector('.dg-cb--big');
+      const small = cursor.querySelector('.dg-cb--small');
+
+      let x = window.innerWidth / 2,  y = window.innerHeight / 2;
+      let bx = x, by = y, sx = x, sy = y;
+      let bigScale = 1, targetScale = 1;
+
+      // Follow with easing
+      function tick() {
+        bx += (x - bx) * 0.15;  by += (y - by) * 0.15;
+        sx += (x - sx) * 0.35;  sy += (y - sy) * 0.35;
+        bigScale += (targetScale - bigScale) * 0.2;
+
+        big.style.transform   = `translate(${bx - 15}px, ${by - 15}px) scale(${bigScale})`;
+        small.style.transform = `translate(${sx - 5}px,  ${sy - 5}px)`;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+
+      // Track pointer
+      window.addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; }, { passive: true });
+
+      // Enlarge over interactive elements inside this page
+      function bindHovers(root = document) {
+        const targets = root.querySelectorAll('a, button, [role="button"], .sqs-block-button a');
+        targets.forEach(el => {
+          el.addEventListener('pointerenter', () => targetScale = 2);
+          el.addEventListener('pointerleave', () => targetScale = 1);
+        });
+      }
+      bindHovers();
+
+      // If your sketch dynamically injects content, re-bind periodically or on mutations if needed
+      const mo = new MutationObserver(() => bindHovers());
+      mo.observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
 </body>
 </html>
