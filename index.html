@@ -1,84 +1,34 @@
-<!-- Custom cursor inside the iframe/page (auto-hide when leaving the iframe) -->
-<script>
-(function () {
-  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (isTouch || prefersReduced) return; // keep default cursor
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Construct Project</title>
 
-  // Build + style
-  document.documentElement.classList.add('dg-hide-cursor');
-  document.body.classList.add('dg-hide-cursor');
+  <!-- p5 core first -->
+  <script defer src="https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.min.js"></script>
 
-  const root = document.createElement('div');
-  root.className = 'dg-cursor';
-  root.style.opacity = '1'; // visible by default while inside iframe
-  root.innerHTML = `
-    <div class="dg-cb dg-cb--big" aria-hidden="true">
-      <svg width="30" height="30" viewBox="0 0 30 30" focusable="false"><circle cx="15" cy="15" r="12"/></svg>
-    </div>
-    <div class="dg-cb dg-cb--small" aria-hidden="true">
-      <svg width="10" height="10" viewBox="0 0 10 10" focusable="false"><circle cx="5" cy="5" r="4"/></svg>
-    </div>`;
-  document.body.appendChild(root);
+  <!-- your styles -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- Optional mount target if your sketch attaches to a specific element -->
+  <main id="app"></main>
 
-  const big = root.querySelector('.dg-cb--big');
-  const small = root.querySelector('.dg-cb--small');
+  <!-- load helper libs BEFORE the main sketch -->
+  <script defer src="./entry.js"></script>
+  <script defer src="./textures.js"></script>
 
-  // Show/hide helpers (toggle native cursor too)
-  let visible = true;
-  function showCursor() {
-    if (visible) return;
-    visible = true;
-    root.style.opacity = '1';
-    document.documentElement.classList.add('dg-hide-cursor');
-    document.body.classList.add('dg-hide-cursor');
-  }
-  function hideCursor() {
-    if (!visible) return;
-    visible = false;
-    root.style.opacity = '0';
-    document.documentElement.classList.remove('dg-hide-cursor');
-    document.body.classList.remove('dg-hide-cursor');
-  }
+  <!-- your texture generators (order can matter if they share globals) -->
+  <script defer src="./g_box.js"></script>
+  <script defer src="./g_cloud.js"></script>
+  <script defer src="./g_gradient.js"></script>
+  <script defer src="./g_scribble.js"></script>
+  <script defer src="./g_zigzag.js"></script>
+  <script defer src="./italicWave.js"></script>
 
-  // Motion
-  let x = innerWidth/2, y = innerHeight/2, bx = x, by = y, sx = x, sy = y;
-  let bigScale = 1, targetScale = 1;
-  (function raf(){
-    bx += (x - bx) * 0.15;  by += (y - by) * 0.15;
-    sx += (x - sx) * 0.35;  sy += (y - sy) * 0.35;
-    bigScale += (targetScale - bigScale) * 0.2;
-    big.style.transform   = `translate(${bx - 15}px, ${by - 15}px) scale(${bigScale})`;
-    small.style.transform = `translate(${sx - 5}px,  ${sy - 5}px)`;
-    requestAnimationFrame(raf);
-  })();
-
-  // Track pointer; ensure visible when moving inside the iframe
-  window.addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; showCursor(); }, { passive: true });
-
-  // Enlarge on interactive things inside this page
-  function bindHovers(rootEl = document){
-    rootEl.querySelectorAll('a, button, [role="button"], .sqs-block-button a').forEach(el => {
-      el.addEventListener('pointerenter', () => { targetScale = 2; }, { passive: true });
-      el.addEventListener('pointerleave', () => { targetScale = 1; }, { passive: true });
-    });
-  }
-  bindHovers();
-
-  // --- KEY PART: hide when the pointer leaves the iframe, show when re-enters ---
-  document.addEventListener('pointerleave', hideCursor, { passive: true });
-  document.addEventListener('mouseleave',  hideCursor, { passive: true });
-  // Some browsers fire only mouseout with null relatedTarget when exiting the iframe:
-  document.addEventListener('mouseout', e => { if (!e.relatedTarget) hideCursor(); }, { passive: true });
-  // When the pointer re-enters anywhere inside the iframe, show again:
-  document.addEventListener('pointerenter', showCursor, { passive: true });
-  document.addEventListener('mouseenter',  showCursor, { passive: true });
-
-  // Also hide if the iframe/page loses focus (e.g., user alt-tabs or scrolls past)
-  window.addEventListener('blur', hideCursor);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { targetScale = 1; bigScale = 1; hideCursor(); } });
-
-  // Rebind on dynamic content (optional)
-  new MutationObserver(() => bindHovers(document)).observe(document.body, { childList: true, subtree: true });
-})();
-</script>
+  <!-- main sketch and update loop LAST -->
+  <script defer src="./sketch.js"></script>
+  <script defer src="./update.js"></script>
+</body>
+</html>
