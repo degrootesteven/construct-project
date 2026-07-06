@@ -27,17 +27,18 @@ class Entry {
     this.animWindow = 60;
 
     this.sH = sH;
+    this.isShape = Object.hasOwn(SHAPE_BUILDERS, ver);
 
     this.pg = null;
-    const shapeBuilder = SHAPE_BUILDERS[ver];
-    if (shapeBuilder) {
+    if (this.isShape) {
+      const shapeBuilder = SHAPE_BUILDERS[ver];
       this.pg = shapeBuilder(heightRatio[this.sel], this.sH, this.sel);
     }
   }
 
   display() {
     // Shapes (cloud, scribble, zigzag, gradient, box)
-    if (this.pg) {
+    if (this.isShape) {
       push();
       translate(heightRatio[this.sel] / 2, 0);
       this.pg.display();
