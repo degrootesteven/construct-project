@@ -1,10 +1,10 @@
 const SHAPE_VERSIONS = new Set([3, 5, 6, 7, 8]);
 const SHAPE_BUILDERS = {
-  3: Scribble,
-  5: Cloud,
-  6: Zigzag,
-  7: Grad,
-  8: Box,
+  3: (...args) => new Scribble(...args),
+  5: (...args) => new Cloud(...args),
+  6: (...args) => new Zigzag(...args),
+  7: (...args) => new Grad(...args),
+  8: (...args) => new Box(...args),
 };
 
 class Entry {
@@ -26,7 +26,7 @@ class Entry {
     this.pg = null;
     const ShapeBuilder = SHAPE_BUILDERS[ver];
     if (ShapeBuilder) {
-      this.pg = new ShapeBuilder(heightRatio[this.sel], this.sH, this.sel);
+      this.pg = ShapeBuilder(heightRatio[this.sel], this.sH, this.sel);
     }
   }
 
