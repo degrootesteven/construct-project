@@ -1,9 +1,15 @@
+const VERSION_SCRIBBLE = 3;
+const VERSION_CLOUD = 5;
+const VERSION_ZIGZAG = 6;
+const VERSION_GRADIENT = 7;
+const VERSION_BOX = 8;
+
 const SHAPE_BUILDERS = {
-  3: (...args) => new Scribble(...args),
-  5: (...args) => new Cloud(...args),
-  6: (...args) => new Zigzag(...args),
-  7: (...args) => new Grad(...args),
-  8: (...args) => new Box(...args),
+  [VERSION_SCRIBBLE]: (...args) => new Scribble(...args),
+  [VERSION_CLOUD]: (...args) => new Cloud(...args),
+  [VERSION_ZIGZAG]: (...args) => new Zigzag(...args),
+  [VERSION_GRADIENT]: (...args) => new Grad(...args),
+  [VERSION_BOX]: (...args) => new Box(...args),
 };
 
 class Entry {
@@ -23,9 +29,9 @@ class Entry {
     this.sH = sH;
 
     this.pg = null;
-    const ShapeBuilder = SHAPE_BUILDERS[ver];
-    if (ShapeBuilder) {
-      this.pg = ShapeBuilder(heightRatio[this.sel], this.sH, this.sel);
+    const shapeBuilder = SHAPE_BUILDERS[ver];
+    if (shapeBuilder) {
+      this.pg = shapeBuilder(heightRatio[this.sel], this.sH, this.sel);
     }
   }
 
