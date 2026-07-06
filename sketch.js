@@ -43,11 +43,7 @@ let SHAPE_DENSITY = 0.6;
 let SHAPE_SCALE   = 0.85;
 
 function getCanvasHost() {
-  return (
-    document.getElementById('construct-container') ||
-    document.getElementById('app') ||
-    document.body
-  );
+  return document.getElementById('construct-container') || document.body;
 }
 
 
