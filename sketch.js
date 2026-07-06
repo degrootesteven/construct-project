@@ -42,6 +42,14 @@ let WORD_PAD      = 8;
 let SHAPE_DENSITY = 0.6;
 let SHAPE_SCALE   = 0.85;
 
+function getCanvasHost() {
+  return (
+    document.getElementById('app') ||
+    document.getElementById('construct-container') ||
+    document.body
+  );
+}
+
 
 // ---------- preload: load local fonts + GIFs ----------
 function preload() {
@@ -73,7 +81,7 @@ function preload() {
 
 // ---------- setup ----------
 function setup() {
-  const host = document.getElementById('construct-container') || document.body;
+  const host = getCanvasHost();
   const cnv = createCanvas(host.clientWidth, host.clientHeight);
   cnv.parent(host);
   frameRate(30);
@@ -115,7 +123,7 @@ function draw() {
 
 // ---------- responsive ----------
 function windowResized() {
-  const host = document.getElementById('construct-container') || document.body;
+  const host = getCanvasHost();
   resizeCanvas(host.clientWidth, host.clientHeight);
   wWindow = width - map(wPad, 0, 100, 0, width);
   if (typeof setText === 'function') setText();

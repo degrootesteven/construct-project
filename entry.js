@@ -1,3 +1,12 @@
+const SHAPE_VERSIONS = new Set([3, 5, 6, 7, 8]);
+const SHAPE_BUILDERS = {
+  3: Scribble,
+  5: Cloud,
+  6: Zigzag,
+  7: Grad,
+  8: Box,
+};
+
 class Entry {
   constructor(sel, ver, sH) {
     this.sel = sel;
@@ -15,22 +24,15 @@ class Entry {
     this.sH = sH;
 
     this.pg = null;
-    if (ver === 5) {
-      this.pg = new Cloud(heightRatio[this.sel], this.sH, this.sel);
-    } else if (ver === 3) {
-      this.pg = new Scribble(heightRatio[this.sel], this.sH, this.sel);
-    } else if (ver === 6) {
-      this.pg = new Zigzag(heightRatio[this.sel], this.sH, this.sel);
-    } else if (ver === 7) {
-      this.pg = new Grad(heightRatio[this.sel], this.sH, this.sel);
-    } else if (ver === 8) {
-      this.pg = new Box(heightRatio[this.sel], this.sH, this.sel);
+    const ShapeBuilder = SHAPE_BUILDERS[ver];
+    if (ShapeBuilder) {
+      this.pg = new ShapeBuilder(heightRatio[this.sel], this.sH, this.sel);
     }
   }
 
   display() {
     // Shapes (cloud, scribble, zigzag, gradient, box)
-    if (this.ver === 3 || this.ver === 5 || this.ver === 6 || this.ver === 7 || this.ver === 8) {
+    if (SHAPE_VERSIONS.has(this.ver)) {
       push();
       translate(heightRatio[this.sel] / 2, 0);
       this.pg.display();
