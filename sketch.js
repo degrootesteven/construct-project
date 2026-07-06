@@ -44,8 +44,8 @@ let SHAPE_SCALE   = 0.85;
 
 function getCanvasHost() {
   return (
-    document.getElementById('app') ||
     document.getElementById('construct-container') ||
+    document.getElementById('app') ||
     document.body
   );
 }
