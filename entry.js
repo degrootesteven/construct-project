@@ -1,4 +1,3 @@
-const SHAPE_VERSIONS = new Set([3, 5, 6, 7, 8]);
 const SHAPE_BUILDERS = {
   3: (...args) => new Scribble(...args),
   5: (...args) => new Cloud(...args),
@@ -32,7 +31,7 @@ class Entry {
 
   display() {
     // Shapes (cloud, scribble, zigzag, gradient, box)
-    if (SHAPE_VERSIONS.has(this.ver)) {
+    if (this.pg) {
       push();
       translate(heightRatio[this.sel] / 2, 0);
       this.pg.display();
